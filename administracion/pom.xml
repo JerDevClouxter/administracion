@@ -8,11 +8,11 @@
 		<version>2.1.3.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.seguridad</groupId>
-	<artifactId>seguridad</artifactId>
+	<groupId>com.administracion</groupId>
+	<artifactId>administracion</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>seguridad</name>
-	<description>Seguridad</description>
+	<name>administracion</name>
+	<description>administracion</description>
 
 	<properties>
 		<java.version>1.8</java.version>

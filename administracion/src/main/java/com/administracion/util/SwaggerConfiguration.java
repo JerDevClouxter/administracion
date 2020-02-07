@@ -1,4 +1,4 @@
-package com.seguridad.util;
+package com.administracion.util;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
