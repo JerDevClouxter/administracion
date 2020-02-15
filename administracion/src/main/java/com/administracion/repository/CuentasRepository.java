@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import com.administracion.entity.Cuentas;
 
 /**
- * Spring data repository para la entidad de EMPRESAS
+ * Spring data repository para la entidad de CUENTAS
  */
 @Repository
 public interface CuentasRepository extends JpaRepository<Cuentas, Long> {}

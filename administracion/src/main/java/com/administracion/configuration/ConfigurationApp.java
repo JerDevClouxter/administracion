@@ -36,4 +36,5 @@ public class ConfigurationApp implements WebMvcConfigurer {
 			.allowedMethods("*")
 			.maxAge(Long.valueOf("3600"));
 	}
+
 }

@@ -18,4 +18,5 @@ public class CuentaDTO implements Serializable{
 	
 	/** nombre de la CUENTA */
 	private String nombre;
+
 }

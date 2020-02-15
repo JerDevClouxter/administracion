@@ -27,4 +27,5 @@ public class EmpresaDTO implements Serializable{
 	
 	/** representante legal de la EMPRESA */
 	private String representanteLegal;
+
 }

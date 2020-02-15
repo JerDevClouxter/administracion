@@ -36,4 +36,5 @@ public class CuentasService {
 	public Cuentas save(Cuentas cuenta) {
 		return this.cuentaRepository.save(cuenta);
 	}
+	
 }
