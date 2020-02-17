@@ -22,13 +22,13 @@ public class ImpuestosService {
 	private ImpuestosRepository impuestoRepository;
 	
 	public List<ImpuestosDTO> findAll() {
-		List<ImpuestosDTO> ImpuestosDTO = null;
+		List<ImpuestosDTO> listImpuestosDTO = null;
 		Builder<Impuestos, ImpuestosDTO> builder = new Builder<Impuestos, ImpuestosDTO>(ImpuestosDTO.class);
-		List<Impuestos> listImpuestosDTO = this.impuestoRepository.findAll();
-		if (!listImpuestosDTO.isEmpty()) {
-			ImpuestosDTO = builder.copy(listImpuestosDTO);
+		List<Impuestos> listImpuestos = this.impuestoRepository.findAll();
+		if (!listImpuestos.isEmpty()) {
+			listImpuestosDTO = builder.copy(listImpuestos);
 		}
-		return ImpuestosDTO;
+		return listImpuestosDTO;
 	}
 	
 	@Transactional
