@@ -7,7 +7,7 @@ import lombok.Data;
  * DTO que se utiliza para configurar los atributos de la CUENTA
  */
 @Data
-public class CuentaDTO implements Serializable{
+public class CuentaDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	/** identificador de la CUENTA */

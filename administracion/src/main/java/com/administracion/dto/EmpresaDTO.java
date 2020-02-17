@@ -7,7 +7,7 @@ import lombok.Data;
  * DTO que se utiliza para configurar los atributos de la EMPRESA
  */
 @Data
-public class EmpresaDTO implements Serializable{
+public class EmpresaDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	/** identificador de la EMPRESA */
