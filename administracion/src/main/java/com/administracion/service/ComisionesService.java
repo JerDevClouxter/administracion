@@ -22,13 +22,13 @@ public class ComisionesService {
 	private ComisionesRepository comisionRepository;
 	
 	public List<ComisionesDTO> findAll() {
-		List<ComisionesDTO> ComisionesDTO = null;
+		List<ComisionesDTO> listComisionesDTO = null;
 		Builder<Comisiones, ComisionesDTO> builder = new Builder<Comisiones, ComisionesDTO>(ComisionesDTO.class);
-		List<Comisiones> listComisionDTO = this.comisionRepository.findAll();
-		if (!listComisionDTO.isEmpty()) {
-			ComisionesDTO = builder.copy(listComisionDTO);
+		List<Comisiones> listComision = this.comisionRepository.findAll();
+		if (!listComision.isEmpty()) {
+			listComisionesDTO = builder.copy(listComision);
 		}
-		return ComisionesDTO;
+		return listComisionesDTO;
 	}
 	
 	@Transactional
