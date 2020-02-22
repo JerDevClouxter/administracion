@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
-import com.administracion.dto.EmpresaDTO;
+import com.administracion.dto.EmpresasDTO;
 import com.administracion.entity.Empresas;
 import com.administracion.repository.EmpresasRepository;
 
@@ -22,9 +22,9 @@ public class EmpresasService {
 	@Autowired
 	private EmpresasRepository empresaRepository;
 	
-	public List<EmpresaDTO> findAll() {
-		List<EmpresaDTO> lstEmpresasDTO = null;
-		Builder<Empresas, EmpresaDTO> builder = new Builder<Empresas, EmpresaDTO>(EmpresaDTO.class);
+	public List<EmpresasDTO> findAll() {
+		List<EmpresasDTO> lstEmpresasDTO = null;
+		Builder<Empresas, EmpresasDTO> builder = new Builder<Empresas, EmpresasDTO>(EmpresasDTO.class);
 		List<Empresas> lstEmpresas = this.empresaRepository.findAll();
 		if (!lstEmpresas.isEmpty()) {
 			lstEmpresasDTO = builder.copy(lstEmpresas);

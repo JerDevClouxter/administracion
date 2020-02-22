@@ -4,10 +4,10 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * DTO que se utiliza para configurar los atributos de la EMPRESA
+ * DTO para encapsular la informacion de empresas
  */
 @Data
-public class EmpresaDTO implements Serializable {
+public class EmpresasDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	/** identificador de la EMPRESA */

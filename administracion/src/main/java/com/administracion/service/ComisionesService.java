@@ -25,9 +25,11 @@ public class ComisionesService {
 		List<ComisionesDTO> listComisionesDTO = null;
 		Builder<Comisiones, ComisionesDTO> builder = new Builder<Comisiones, ComisionesDTO>(ComisionesDTO.class);
 		List<Comisiones> listComision = this.comisionRepository.findAll();
+		
 		if (!listComision.isEmpty()) {
 			listComisionesDTO = builder.copy(listComision);
 		}
+		
 		return listComisionesDTO;
 	}
 	

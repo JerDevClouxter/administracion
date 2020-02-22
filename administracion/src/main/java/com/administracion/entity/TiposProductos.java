@@ -13,9 +13,9 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "TipoProductos")
+@Table(name = "TiposProductos")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class TipoProductos implements Serializable{
+public class TiposProductos implements Serializable{
 	private static final long serialVersionaUID = 1L;
 	
 	@Id

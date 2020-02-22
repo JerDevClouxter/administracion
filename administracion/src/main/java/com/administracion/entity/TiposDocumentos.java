@@ -11,13 +11,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import lombok.Data;
 
 /**
- * Entidad que representa la tabla TipoDocumentos
+ * Entidad que representa la tabla TiposDocumentos
  */
 @Data
 @Entity
-@Table(name = "TipoDocumentos")
+@Table(name = "TiposDocumentos")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class TipoDocumentos implements Serializable{
+public class TiposDocumentos implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 

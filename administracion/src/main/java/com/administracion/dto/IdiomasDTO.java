@@ -4,10 +4,10 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * DTO que se utiliza para configurar los atributos de IDIOMA
+ * DTO para encapsular la información de idiomas
  */
 @Data
-public class IdiomaDTO implements Serializable {
+public class IdiomasDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/** identificador del IDIOMA */

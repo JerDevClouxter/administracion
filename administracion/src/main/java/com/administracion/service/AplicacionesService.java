@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
-import com.administracion.dto.AplicacionDTO;
+import com.administracion.dto.AplicacionesDTO;
 import com.administracion.entity.Aplicaciones;
 import com.administracion.repository.AplicacionesRepository;
 
@@ -22,13 +22,15 @@ public class AplicacionesService {
 	@Autowired
 	private AplicacionesRepository aplicacionRepository;
 	
-	public List<AplicacionDTO> findAll() {
-		List<AplicacionDTO> lstAplicacionesDTO = null;
-		Builder<Aplicaciones, AplicacionDTO> builder = new Builder<Aplicaciones, AplicacionDTO>(AplicacionDTO.class);
+	public List<AplicacionesDTO> findAll() {
+		List<AplicacionesDTO> lstAplicacionesDTO = null;
+		Builder<Aplicaciones, AplicacionesDTO> builder = new Builder<Aplicaciones, AplicacionesDTO>(AplicacionesDTO.class);
 		List<Aplicaciones> lstAplicaciones = this.aplicacionRepository.findAll();
+		
 		if (!lstAplicaciones.isEmpty()) {
 			lstAplicacionesDTO = builder.copy(lstAplicaciones);
 		}
+		
 		return lstAplicacionesDTO;
 	}
 	

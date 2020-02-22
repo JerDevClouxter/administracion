@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
-import com.administracion.dto.IdiomaDTO;
+import com.administracion.dto.IdiomasDTO;
 import com.administracion.entity.Idiomas;
 import com.administracion.repository.IdiomasRepository;
 
@@ -22,9 +22,9 @@ public class IdiomasService {
 	@Autowired
 	private IdiomasRepository idiomaRepository;
 	
-	public List<IdiomaDTO> findAll() {
-		List<IdiomaDTO> lstIdiomasDTO = null;
-		Builder<Idiomas, IdiomaDTO> builder = new Builder<Idiomas, IdiomaDTO>(IdiomaDTO.class);
+	public List<IdiomasDTO> findAll() {
+		List<IdiomasDTO> lstIdiomasDTO = null;
+		Builder<Idiomas, IdiomasDTO> builder = new Builder<Idiomas, IdiomasDTO>(IdiomasDTO.class);
 		List<Idiomas> lstIdiomas = this.idiomaRepository.findAll();
 		if (!lstIdiomas.isEmpty()) {
 			lstIdiomasDTO = builder.copy(lstIdiomas);

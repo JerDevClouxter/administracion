@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
-import com.administracion.dto.CuentaDTO;
+import com.administracion.dto.CuentasDTO;
 import com.administracion.entity.Cuentas;
 import com.administracion.repository.CuentasRepository;
 
@@ -22,9 +22,9 @@ public class CuentasService {
 	@Autowired
 	private CuentasRepository cuentaRepository;
 	
-	public List<CuentaDTO> findAll() {
-		List<CuentaDTO> lstCuentasDTO = null;
-		Builder<Cuentas, CuentaDTO> builder = new Builder<Cuentas, CuentaDTO>(CuentaDTO.class);
+	public List<CuentasDTO> findAll() {
+		List<CuentasDTO> lstCuentasDTO = null;
+		Builder<Cuentas, CuentasDTO> builder = new Builder<Cuentas, CuentasDTO>(CuentasDTO.class);
 		List<Cuentas> lstCuentas = this.cuentaRepository.findAll();
 		if (!lstCuentas.isEmpty()) {
 			lstCuentasDTO = builder.copy(lstCuentas);
