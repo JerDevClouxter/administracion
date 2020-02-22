@@ -33,8 +33,10 @@ public class EmpresasService {
 	}
 	
 	@Transactional
-	public Empresas save(Empresas empresa) {
-		return this.empresaRepository.save(empresa);
+	public Empresas save(EmpresasDTO empresaDTO) {
+		Builder<EmpresasDTO, Empresas> builder = 
+				new Builder<EmpresasDTO, Empresas>(Empresas.class);
+		return this.empresaRepository.save(builder.copy(empresaDTO));
 	}
 	
 }

@@ -33,8 +33,10 @@ public class CuentasService {
 	}
 	
 	@Transactional
-	public Cuentas save(Cuentas cuenta) {
-		return this.cuentaRepository.save(cuenta);
+	public Cuentas save(CuentasDTO cuentaDTO) {
+		Builder<CuentasDTO, Cuentas> builder = 
+				new Builder<CuentasDTO, Cuentas>(Cuentas.class);
+		return this.cuentaRepository.save(builder.copy(cuentaDTO));		
 	}
 	
 }

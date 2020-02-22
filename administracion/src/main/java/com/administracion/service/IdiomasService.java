@@ -20,12 +20,12 @@ public class IdiomasService {
 	
 	/** Repository que contiene los metodos utilitarios para la persistencia de la entidad IDIOMAS */
 	@Autowired
-	private IdiomasRepository idiomaRepository;
+	private IdiomasRepository idiomasRepository;
 	
 	public List<IdiomasDTO> findAll() {
 		List<IdiomasDTO> lstIdiomasDTO = null;
 		Builder<Idiomas, IdiomasDTO> builder = new Builder<Idiomas, IdiomasDTO>(IdiomasDTO.class);
-		List<Idiomas> lstIdiomas = this.idiomaRepository.findAll();
+		List<Idiomas> lstIdiomas = this.idiomasRepository.findAll();
 		if (!lstIdiomas.isEmpty()) {
 			lstIdiomasDTO = builder.copy(lstIdiomas);
 		}
@@ -33,8 +33,10 @@ public class IdiomasService {
 	}
 	
 	@Transactional
-	public Idiomas save(Idiomas idioma) {
-		return this.idiomaRepository.save(idioma);
+	public Idiomas save(IdiomasDTO idiomaDTO) {
+		Builder<IdiomasDTO, Idiomas> builder = 
+				new Builder<IdiomasDTO, Idiomas>(Idiomas.class);
+		return this.idiomasRepository.save(builder.copy(idiomaDTO));
 	}
 	
 }

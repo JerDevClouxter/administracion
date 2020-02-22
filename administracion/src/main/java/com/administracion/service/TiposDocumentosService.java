@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
-import com.administracion.dto.TiposDocumentoDTO;
+import com.administracion.dto.TiposDocumentosDTO;
 import com.administracion.entity.TiposDocumentos;
 import com.administracion.repository.TiposDocumentosRepository;
 
@@ -21,9 +21,9 @@ public class TiposDocumentosService {
 	@Autowired
 	private TiposDocumentosRepository tiposDocumentosRepository;
 	
-	public List<TiposDocumentoDTO> findAll() {
-		List<TiposDocumentoDTO> listTipoDocumentosDTO = null;
-		Builder<TiposDocumentos, TiposDocumentoDTO> builder = new Builder<TiposDocumentos, TiposDocumentoDTO>(TiposDocumentoDTO.class);
+	public List<TiposDocumentosDTO> findAll() {
+		List<TiposDocumentosDTO> listTipoDocumentosDTO = null;
+		Builder<TiposDocumentos, TiposDocumentosDTO> builder = new Builder<TiposDocumentos, TiposDocumentosDTO>(TiposDocumentosDTO.class);
 		List<TiposDocumentos> listTipoDocumentos = this.tiposDocumentosRepository.findAll();
 		if (!listTipoDocumentos.isEmpty()) {
 			listTipoDocumentosDTO = builder.copy(listTipoDocumentos);
@@ -32,8 +32,10 @@ public class TiposDocumentosService {
 	}
 	
 	@Transactional
-	public TiposDocumentos save(TiposDocumentos tipoDocumentos) {
-		return this.tiposDocumentosRepository.save(tipoDocumentos);
+	public TiposDocumentos save(TiposDocumentosDTO tipoDocumentoDTO) {
+		Builder<TiposDocumentosDTO, TiposDocumentos> builder = 
+				new Builder<TiposDocumentosDTO, TiposDocumentos>(TiposDocumentos.class);
+		return this.tiposDocumentosRepository.save(builder.copy(tipoDocumentoDTO));
 	}
 	
 }

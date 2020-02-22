@@ -34,8 +34,10 @@ public class ComisionesService {
 	}
 	
 	@Transactional
-	public Comisiones save(Comisiones comision) {
-		return this.comisionRepository.save(comision);
+	public Comisiones save(ComisionesDTO comisionDTO) {
+		Builder<ComisionesDTO, Comisiones> builder = 
+				new Builder<ComisionesDTO, Comisiones>(Comisiones.class);
+		return this.comisionRepository.save(builder.copy(comisionDTO));		
 	}
 	
 }

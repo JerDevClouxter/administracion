@@ -35,8 +35,10 @@ public class AplicacionesService {
 	}
 	
 	@Transactional
-	public Aplicaciones save(Aplicaciones aplicacion) {
-		return this.aplicacionRepository.save(aplicacion);
+	public Aplicaciones save(AplicacionesDTO aplicacionDTO) {
+		Builder<AplicacionesDTO, Aplicaciones> builder = 
+				new Builder<AplicacionesDTO, Aplicaciones>(Aplicaciones.class);
+		return this.aplicacionRepository.save(builder.copy(aplicacionDTO));
 	}
 	
 }

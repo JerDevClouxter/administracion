@@ -10,7 +10,7 @@ import lombok.Data;
  *
  */
 @Data
-public class TiposProductoDTO implements Serializable{
+public class TiposProductosDTO implements Serializable{
 	private static final long serialVersionUID = 1L;
 		
 	/** Identificador de TipoProductos */

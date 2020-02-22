@@ -32,8 +32,10 @@ public class ImpuestosService {
 	}
 	
 	@Transactional
-	public Impuestos save(Impuestos impuesto) {
-		return this.impuestoRepository.save(impuesto);
+	public Impuestos save(ImpuestosDTO impuestoDTO) {
+		Builder<ImpuestosDTO, Impuestos> builder = 
+				new Builder<ImpuestosDTO, Impuestos>(Impuestos.class);
+		return this.impuestoRepository.save(builder.copy(impuestoDTO));		
 	}
 	
 }

@@ -32,8 +32,10 @@ public class MonedasService {
 	}
 	
 	@Transactional
-	public Monedas save(Monedas monedas) {
-		return this.monedasRepository.save(monedas);
+	public Monedas save(MonedasDTO monedaDTO) {
+		Builder<MonedasDTO, Monedas> builder = 
+				new Builder<MonedasDTO, Monedas>(Monedas.class);
+		return this.monedasRepository.save(builder.copy(monedaDTO));		
 	}
 	
 }

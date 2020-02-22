@@ -11,7 +11,7 @@ import lombok.Data;
  *
  */
 @Data
-public class TiposDocumentoDTO implements Serializable{
+public class TiposDocumentosDTO implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	/** Identificador de TipoDocumento */
