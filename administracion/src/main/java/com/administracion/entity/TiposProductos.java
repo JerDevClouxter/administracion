@@ -19,7 +19,7 @@ import lombok.Data;
 @Entity
 @Table(name = "TIPOS_PRODUCTOS")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class TipoProductos implements Serializable{
+public class TiposProductos implements Serializable{
 	
 	/**
 	 * Serial version por defecto
