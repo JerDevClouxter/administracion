@@ -3,7 +3,6 @@ package com.administracion.entity;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
@@ -12,22 +11,29 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import lombok.Data;
 
 /**
- * Entidad que nos representa la tabla IMPUESTOS
+ * Entidad que representa la tabla EMPRESAS_PRODUCTOS_IMPUESTOS
+ * 
+ * @author Jhonnatan Orozco Duque
+ *
  */
 @Data
 @Entity
-@Table(name = "IMPUESTOS")
+@Table(name = "EMPRESAS_PRODUCTOS_IMPUESTOS")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Impuestos implements Serializable {
+public class EmpresasProductosImpuestos implements Serializable {
 
 	/**
 	 * Serial version por defecto
 	 */
 	private static final long serialVersionUID = 1L;
 
-	@Id
+	private Long idEmpresa;
+	private Long idProducto;
 	private Long idImpuesto;
-	private String nombre;
-	private String descripcion;
+	private String idEstado;
+	private Double porcentajeImpuesto;
+	private Double valorFijoImpuesto;
+	private Double valorMinTransaccion;
+	private Double valorMaxTransaccion;
 
 }
