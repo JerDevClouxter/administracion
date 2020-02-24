@@ -13,8 +13,6 @@ import lombok.Data;
 /**
  * Entidad que representa la tabla EMPRESAS_PRODUCTOS_IMPUESTOS
  * 
- * @author Jhonnatan Orozco Duque
- *
  */
 @Data
 @Entity

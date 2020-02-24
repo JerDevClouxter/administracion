@@ -9,4 +9,12 @@ import com.administracion.entity.Empresas;
  * Spring data repository para la entidad de EMPRESAS
  */
 @Repository
-public interface EmpresasRepository extends JpaRepository<Empresas, Long> {}
+public interface IEmpresasRepository extends JpaRepository<Empresas, Long> {
+	/**
+	 * Metodo encargado de obtener la empresa relacionada a un idEmpresa
+	 * 
+	 * @param idEmpresa
+	 * @return Empresa
+	 */
+	public Empresas findByIdEmpresa(Long idEmpresa);
+}

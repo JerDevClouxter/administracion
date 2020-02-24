@@ -12,8 +12,6 @@ import lombok.Data;
 
 /**
  * Entidad que representa la tabla CUENTAS_PRODUCTOS
- * 
- * @author Jhonnatan Orozco Duque
  *
  */
 @Data
