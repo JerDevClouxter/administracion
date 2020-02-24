@@ -12,17 +12,24 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import lombok.Data;
 
 /**
- * Entidad que representa la tabla CUENTAS
+ * Entidad que representa la tabla PRODUCTOS
+ * 
  */
 @Data
 @Entity
-@Table(name = "CUENTAS")
+@Table(name = "PRODUCTOS")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Cuentas implements Serializable{
+public class Productos implements Serializable {
+
+	/**
+	 * Serial version por defecto
+	 */
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	private Long idCuenta;
-	private Long idClaseCuenta;
+	private Long idProducto;
+	private Long idTipoProducto;
 	private String nombre;
+	private String idStado;
+
 }

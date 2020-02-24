@@ -3,7 +3,6 @@ package com.administracion.entity;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
@@ -12,22 +11,26 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import lombok.Data;
 
 /**
- * Entidad que representa la tabla EMPRESAS
+ * Entidad que representa la tabla EMPRESAS_PRODUCTOS
+ *
  */
 @Data
 @Entity
-@Table(name = "EMPRESAS")
+@Table(name = "EMPRESAS_PRODUCTOS")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Empresas implements Serializable {
+public class EmpresasProductos implements Serializable {
+	/**
+	 * Serial por defecto
+	 */
 	private static final long serialVersionUID = 1L;
-	
-	@Id
+
 	private Long idEmpresa;
-	private Long idEmpresaPadre;
-	private String nitEmpresa;
-	private String razonSocial;
-	private String direccion;
-	private String telefono;
-	private String representanteLegal;
+	private Long idProducto;
+	private Double valorMinimo;
+	private Double valorMaximo;
+	private Double valorMaximoDia;
+	private String idEstado;
+	private String horaInicioVenta;
+	private String horaFinalVenta;
 
 }

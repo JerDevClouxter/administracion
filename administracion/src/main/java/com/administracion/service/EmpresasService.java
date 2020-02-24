@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.administracion.builder.Builder;
 import com.administracion.dto.EmpresasDTO;
 import com.administracion.entity.Empresas;
-import com.administracion.repository.EmpresasRepository;
+import com.administracion.repository.IEmpresasRepository;
+import com.administracion.util.BusinessException;
 
 /**
  * Service que contiene los procesos de negocio para las EMPRESAS
@@ -18,11 +19,14 @@ import com.administracion.repository.EmpresasRepository;
 @Transactional(readOnly = true)
 public class EmpresasService {
 
-	/** Repository que contiene los metodos utilitarios para la persistencia de la entidad EMPRESAS */
+	/**
+	 * Repository que contiene los metodos utilitarios para la persistencia de la
+	 * entidad EMPRESAS
+	 */
 	@Autowired
-	private EmpresasRepository empresaRepository;
-	
-	public List<EmpresasDTO> findAll() {
+	private IEmpresasRepository empresaRepository;
+
+	public List<EmpresasDTO> findAll() throws Exception {
 		List<EmpresasDTO> lstEmpresasDTO = null;
 		Builder<Empresas, EmpresasDTO> builder = new Builder<Empresas, EmpresasDTO>(EmpresasDTO.class);
 		List<Empresas> lstEmpresas = this.empresaRepository.findAll();
@@ -31,12 +35,24 @@ public class EmpresasService {
 		}
 		return lstEmpresasDTO;
 	}
-	
+
 	@Transactional
 	public Empresas save(EmpresasDTO empresaDTO) {
-		Builder<EmpresasDTO, Empresas> builder = 
-				new Builder<EmpresasDTO, Empresas>(Empresas.class);
+		Builder<EmpresasDTO, Empresas> builder = new Builder<EmpresasDTO, Empresas>(Empresas.class);
 		return this.empresaRepository.save(builder.copy(empresaDTO));
 	}
-	
+
+	//Pendiente definir manejo de onjetos con DTO, para no retornar la entidad
+	@Transactional(readOnly = true)
+	public Empresas findByIdEmpresa(Long idEmpresa) throws BusinessException {
+
+		Empresas empresa = empresaRepository.findByIdEmpresa(idEmpresa);
+
+		if (empresa != null) {
+			return empresa;
+		}
+		// Pendiente estandarizar manejo de errores
+		throw new BusinessException("No se encontro data");
+
+	}
 }
