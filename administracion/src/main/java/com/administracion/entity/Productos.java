@@ -35,7 +35,7 @@ public class Productos implements Serializable {
 	private Long idProducto;
 	@Column(name = "id_tipo_producto")
 	private Long idTipoProducto;
-	@Column(name = "id_nombre")
+	@Column(name = "nombre")
 	private String nombre;
 	@Column(name = "id_estado")
 	private String idEstado;

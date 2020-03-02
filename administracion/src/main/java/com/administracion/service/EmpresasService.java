@@ -15,6 +15,7 @@ import com.administracion.builder.Builder;
 import com.administracion.constant.Numero;
 import com.administracion.constant.SQLConstant;
 import com.administracion.dto.EmpresasDTO;
+import com.administracion.dto.ProductosDTO;
 import com.administracion.entity.Empresas;
 import com.administracion.repository.IEmpresasRepository;
 import com.administracion.util.BusinessException;
@@ -78,7 +79,6 @@ public class EmpresasService {
 		List<Object[]> result = q.getResultList();
 		EmpresasDTO empresaDTO=null;
 		List<EmpresasDTO> empresaDTOList=new ArrayList<>();
-		// se verifica que si exista el usuario
 		if (result != null && !result.isEmpty()) {
 			for (Object[] data : result) {
 				empresaDTO=new EmpresasDTO();
@@ -89,5 +89,23 @@ public class EmpresasService {
 			}
 		}
 		return empresaDTOList;
+	}
+
+	/**
+	 * metodo encargado de filtrar los productos para una empresa
+	 * @param idEmpresa
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ProductosDTO consultarProductosEmpresas(Long idEmpresa)  throws BusinessException {
+		Query q=em.createNativeQuery(SQLConstant.SELECT_PRODUCTOS_EMPRESA_BASE);
+		Object[] result = (Object[]) q.getSingleResult();
+		ProductosDTO productosDTO=null;
+		if (result != null) {
+			productosDTO=new ProductosDTO();
+			productosDTO.setIdProducto(Long.valueOf(Util.getValue(result, Numero.ZERO.valueI)));
+			productosDTO.setNombre(Util.getValue(result, Numero.UNO.valueI));
+		}
+		return productosDTO;
 	}
 }
