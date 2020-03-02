@@ -98,7 +98,8 @@ public class EmpresasService {
 	 * @throws BusinessException
 	 */
 	public ProductosDTO consultarProductosEmpresas(Long idEmpresa)  throws BusinessException {
-		Query q=em.createNativeQuery(SQLConstant.SELECT_PRODUCTOS_EMPRESA_BASE);
+		Query q=em.createNativeQuery(SQLConstant.SELECT_PRODUCTOS_EMPRESA_BASE)
+				.setParameter("idEmpresa", idEmpresa);
 		Object[] result = (Object[]) q.getSingleResult();
 		ProductosDTO productosDTO=null;
 		if (result != null) {
