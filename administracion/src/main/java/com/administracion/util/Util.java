@@ -46,5 +46,12 @@ public class Util {
 		}
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponseDTO(metodo + error));
 	}
+	
+	/**
+	 * Metodo que permite obtener un valor de un array de objecto
+	 */
+	public static String getValue(Object[] data, Integer index) {
+		return data[index] != null ? data[index].toString() : null;
+	}
 
 }

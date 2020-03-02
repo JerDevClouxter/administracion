@@ -2,7 +2,10 @@ package com.administracion.entity;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -27,9 +30,14 @@ public class Productos implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_producto")
 	private Long idProducto;
+	@Column(name = "id_tipo_producto")
 	private Long idTipoProducto;
+	@Column(name = "nombre")
 	private String nombre;
-	private String idStado;
+	@Column(name = "id_estado")
+	private String idEstado;
 
 }

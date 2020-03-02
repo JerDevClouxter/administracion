@@ -1,16 +1,25 @@
 package com.administracion.service;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
+import com.administracion.constant.Numero;
+import com.administracion.constant.SQLConstant;
 import com.administracion.dto.EmpresasDTO;
+import com.administracion.dto.ProductosDTO;
 import com.administracion.entity.Empresas;
 import com.administracion.repository.IEmpresasRepository;
 import com.administracion.util.BusinessException;
+import com.administracion.util.Util;
 
 /**
  * Service que contiene los procesos de negocio para las EMPRESAS
@@ -19,6 +28,11 @@ import com.administracion.util.BusinessException;
 @Transactional(readOnly = true)
 public class EmpresasService {
 
+	
+
+	/** Contexto de la persistencia del sistema */
+	@PersistenceContext
+	private EntityManager em;
 	/**
 	 * Repository que contiene los metodos utilitarios para la persistencia de la
 	 * entidad EMPRESAS
@@ -54,5 +68,44 @@ public class EmpresasService {
 		// Pendiente estandarizar manejo de errores
 		throw new BusinessException("No se encontro data");
 
+	}
+
+	/**
+	 * Metodo encargado de consultar las empresas para exponer
+	 * @return
+	 */
+	public List<EmpresasDTO> consultarEmpresas() throws BusinessException {
+		Query q=em.createNativeQuery(SQLConstant.SELECT_EMPRESAS_BASE);
+		List<Object[]> result = q.getResultList();
+		EmpresasDTO empresaDTO=null;
+		List<EmpresasDTO> empresaDTOList=new ArrayList<>();
+		if (result != null && !result.isEmpty()) {
+			for (Object[] data : result) {
+				empresaDTO=new EmpresasDTO();
+				empresaDTO.setIdEmpresa(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				empresaDTO.setNitEmpresa(Util.getValue(data, Numero.UNO.valueI));
+				empresaDTO.setRazonSocial(Util.getValue(data, Numero.DOS.valueI));
+				empresaDTOList.add(empresaDTO);
+			}
+		}
+		return empresaDTOList;
+	}
+
+	/**
+	 * metodo encargado de filtrar los productos para una empresa
+	 * @param idEmpresa
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ProductosDTO consultarProductosEmpresas(Long idEmpresa)  throws BusinessException {
+		Query q=em.createNativeQuery(SQLConstant.SELECT_PRODUCTOS_EMPRESA_BASE);
+		Object[] result = (Object[]) q.getSingleResult();
+		ProductosDTO productosDTO=null;
+		if (result != null) {
+			productosDTO=new ProductosDTO();
+			productosDTO.setIdProducto(Long.valueOf(Util.getValue(result, Numero.ZERO.valueI)));
+			productosDTO.setNombre(Util.getValue(result, Numero.UNO.valueI));
+		}
+		return productosDTO;
 	}
 }
