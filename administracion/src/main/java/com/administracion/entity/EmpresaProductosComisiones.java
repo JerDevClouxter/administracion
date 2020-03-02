@@ -3,6 +3,7 @@ package com.administracion.entity;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
@@ -25,6 +26,7 @@ public class EmpresaProductosComisiones implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	@Id
 	private Long idEmpresa;
 	private Long idProducto;
 	private Long idComision;
