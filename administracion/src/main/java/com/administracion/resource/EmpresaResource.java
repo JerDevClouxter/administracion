@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.administracion.service.EmpresasService;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
-import com.escrutinio.dto.LoteriasRequestDTO;
-import com.escrutinio.resource.LoteriasResource;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -23,7 +21,7 @@ import io.swagger.annotations.ApiResponses;
  * localhost:puerto/path_name/
  */
 @RestController
-@RequestMapping("/path_name")
+@RequestMapping("/empresas")
 public class EmpresaResource {
 
 	@Autowired
