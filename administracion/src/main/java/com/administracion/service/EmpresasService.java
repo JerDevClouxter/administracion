@@ -97,16 +97,21 @@ public class EmpresasService {
 	 * @return
 	 * @throws BusinessException
 	 */
-	public ProductosDTO consultarProductosEmpresas(Long idEmpresa)  throws BusinessException {
+	@SuppressWarnings("unchecked")
+	public List<ProductosDTO> consultarProductosEmpresas(Long idEmpresa)  throws BusinessException {
+		 List<ProductosDTO> lista=new ArrayList<>();
 		Query q=em.createNativeQuery(SQLConstant.SELECT_PRODUCTOS_EMPRESA_BASE)
 				.setParameter("idEmpresa", idEmpresa);
-		Object[] result = (Object[]) q.getSingleResult();
+		List<Object[]> listaT=q.getResultList();
 		ProductosDTO productosDTO=null;
-		if (result != null) {
+		if(listaT!=null && !listaT.isEmpty()) {
+		for (Object[] result : listaT) {
 			productosDTO=new ProductosDTO();
 			productosDTO.setIdProducto(Long.valueOf(Util.getValue(result, Numero.ZERO.valueI)));
 			productosDTO.setNombre(Util.getValue(result, Numero.UNO.valueI));
+			lista.add(productosDTO);
 		}
-		return productosDTO;
+		}
+		return lista;
 	}
 }
