@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.administracion.dto.multinivel.CuentasProductosDTO;
+import com.administracion.dto.multinivel.DatosEmpresaProductoConfiguracionDTO;
 import com.administracion.multinivel.service.MultinivelService;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
@@ -61,15 +61,15 @@ public class MultinivelResource {
 	 * @return List<EmpresasProductosDTO>
 	 * @throws BusinessException
 	 */
-	@GetMapping(path = "/consultarProductosIdEmpresa/{idEmpresa}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@GetMapping(path = "/consultarProductosIdEmpresa", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Consultar productos por idEmpresa", notes = "Operación para consular productos asociados a una empresa")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
-	public ResponseEntity<Object> consultarProductosIdEmpresa(@PathVariable Long idEmpresa) {
+	public ResponseEntity<Object> consultarProductosIdEmpresa(@RequestParam("idEmpresa") Long idEmpresa, @RequestParam("esEditarConfiguracion") Boolean esEditarConfiguracion) {
 		try {
-			return Util.getResponseSuccessful(this.multinivelService.consultarProductosIdEmpresa(idEmpresa));
+			return Util.getResponseSuccessful(this.multinivelService.consultarProductosIdEmpresa(idEmpresa, esEditarConfiguracion));
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
@@ -130,17 +130,18 @@ public class MultinivelResource {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa", e.getMessage());
 		}
 	}
-	@PostMapping(path = "/consEmpProCom",
+	@PostMapping(path = "/asociarConfigProductosEmpresas",
 			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
 			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	@ApiOperation(value = "Consultar cuentas productos empresa", notes = "Operación para consular las cuentas asociadas a los productos asociados a una empresa")
+	@ApiOperation(value = "Almacena la asociación de productos para una empresa", notes = "Operación para Almacena la asociación de productos para una empresa")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
-	public ResponseEntity<Object> getDatosBienvenida(@RequestBody CuentasProductosDTO data) {
+	public ResponseEntity<Object> asociarConfigProductosEmpresas(@RequestBody DatosEmpresaProductoConfiguracionDTO productosEmpresaConf) {
 		try {
-			return Util.getResponseSuccessful(this.multinivelService.consultarEmpresaProductosComision(data.getIdEmpresa(),data.getIdProducto()));
+			productosEmpresaConf.toString();
+			return Util.getResponseSuccessful(this.multinivelService.asociarConfigProductosEmpresas(productosEmpresaConf));
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
 		}
