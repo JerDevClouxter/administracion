@@ -43,6 +43,11 @@ public class EmpresaResource {
 		}
 	}
 	
+	/**
+	 * Metodo encargado de consultar los productospara una empresa
+	 * @param idEmpresa id para consulta
+	 * @return productos asociados a la empresa
+	 */
 	@GetMapping(path = "/consultarProductosEmpresas/{idEmpresa}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Consultar Empresa", notes = "Operación para consular empresa usaurio")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
@@ -59,7 +64,10 @@ public class EmpresaResource {
 		}
 	}
 	
-	
+	/**
+	 * Metodo encargado de consultar las empresa
+	 * @return listado de empresas
+	 */
 	@GetMapping(path = "/consultarEmpresas", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Consultar Loterias", notes = "Operación para consular empresas")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
