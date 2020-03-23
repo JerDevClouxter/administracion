@@ -94,6 +94,11 @@ public class ConfigurarEmpresasResource {
 		}
 	}
 	
+	
+	/**
+	 * Metodo encargado de almacenar los productos relacionados a una empresa
+	 * @param productosEmpresa
+	 */
 	@PostMapping(path = "/insertarEmpresaProducto",
 			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
 			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -104,12 +109,18 @@ public class ConfigurarEmpresasResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> insertarEmpresaProducto(@RequestBody EmpresasProductosDTO productosEmpresa) {
 		try {
-			return Util.getResponseSuccessful(this.multinivelService.insertarEmpresaProducto(productosEmpresa));
+			this.multinivelService.insertarEmpresaProducto(productosEmpresa);
+			return Util.getResponseOk();
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
 		}
 	}
 	
+	/**
+	 * Metodo encargado de almacenar las comisiones asociadas  a los productos 
+	 * relacionados a una empresa
+	 * @param comisionesEmpPro
+	 */
 	@PostMapping(path = "/insertarEmpresaProductoComisiones",
 			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
 			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -120,12 +131,18 @@ public class ConfigurarEmpresasResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> insertarEmpresaProductoComisiones(@RequestBody EmpresasProductosComisionesDTO comisionesEmpPro) {
 		try {
-			return Util.getResponseSuccessful(this.multinivelService.insertarEmpresaProductoComisiones(comisionesEmpPro));
+			this.multinivelService.insertarEmpresaProductoComisiones(comisionesEmpPro);
+			return Util.getResponseOk();
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
 		}
 	}
 	
+	/**
+	 * Metodo encargado de almacenar las cuentas asociadas  a los productos 
+	 * relacionados a una empresa
+	 * @param comisionesEmpPro
+	 */
 	@PostMapping(path = "/insertarCuentaProducto",
 			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
 			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -136,7 +153,8 @@ public class ConfigurarEmpresasResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> insertarCuentaProducto(@RequestBody CuentasProductosDTO cuentaProducto) {
 		try {
-			return Util.getResponseSuccessful(this.multinivelService.insertarCuentaProducto(cuentaProducto));
+			this.multinivelService.insertarCuentaProducto(cuentaProducto);
+			return Util.getResponseOk();
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".insertarCuentaProducto ", e.getMessage());
 		}

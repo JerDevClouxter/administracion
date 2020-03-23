@@ -34,6 +34,7 @@ import com.administracion.repository.IEmpresasRepository;
 import com.administracion.repository.IProductosRepository;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
+import com.administracion.multinivel.enums.EstadoEnum;
 
 /**
  * Service que contiene los procesos de negocio para multinivel
@@ -308,10 +309,9 @@ public class MultinivelService {
 	 * 
 	 * @param DatosEmpresaProductoConfiguracionDTO contiene las listas con las
 	 *                                             configuraciones a guardar
-	 * @return
 	 * @throws BusinessException
 	 */
-	public Boolean asociarConfigProductosEmpresas(DatosEmpresaProductoConfiguracionDTO productosEmpresaConf)
+	public void asociarConfigProductosEmpresas(DatosEmpresaProductoConfiguracionDTO productosEmpresaConf)
 			throws BusinessException {
 
 		// Se guarda la asociación de productos
@@ -329,7 +329,6 @@ public class MultinivelService {
 			guardarCuentasConfigEmpPro(cueProEmpresa);
 		}
 
-		return true;
 	}
 
 	/**
@@ -381,18 +380,17 @@ public class MultinivelService {
 	 * 
 	 * @param productosEmpresa
 	 */
-	public Boolean insertarEmpresaProducto(EmpresasProductosDTO productosEmpresa) {
+	public void insertarEmpresaProducto(EmpresasProductosDTO productosEmpresa) {
 		em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS)
 		.setParameter("idEmpresa", productosEmpresa.getIdEmpresa())
 		.setParameter("idProducto", productosEmpresa.getIdProducto())
 		.setParameter("valorMinimo", productosEmpresa.getValorMinimo())
 		.setParameter("valorMaximo", productosEmpresa.getValorMaximo())
 		.setParameter("valorMaximoDia", productosEmpresa.getValorMaximoDia())
-		.setParameter("idEstado", productosEmpresa.getIdEstado())
+		.setParameter("idEstado", EstadoEnum.ACTIVO.name())
 		.setParameter("horaInicioVenta", productosEmpresa.getHoraInicioVenta())
 		.setParameter("horaFinalVenta", productosEmpresa.getHoraFinalVenta()).executeUpdate();
 		
-		return true;
 	}
 	
 	/**
@@ -400,16 +398,15 @@ public class MultinivelService {
 	 * 
 	 * @param comisionesEmpPro
 	 */
-	public Boolean insertarEmpresaProductoComisiones(EmpresasProductosComisionesDTO comisionesEmpPro) {
+	public void insertarEmpresaProductoComisiones(EmpresasProductosComisionesDTO comisionesEmpPro) {
 		em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS_COMISIONES)
 				.setParameter("idEmpresa", comisionesEmpPro.getIdEmpresa())
 				.setParameter("idProducto", comisionesEmpPro.getIdProducto())
 				.setParameter("idComision", comisionesEmpPro.getIdComision())
 				.setParameter("porcentajeComision", comisionesEmpPro.getPorcentajeComision())
 				.setParameter("valorFijoComision", comisionesEmpPro.getValorFijoComision())
-				.setParameter("idEstado", comisionesEmpPro.getIdEstado()).executeUpdate();
+				.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
 		
-		return true;
 	}
 
 	/**
@@ -418,14 +415,13 @@ public class MultinivelService {
 	 * 
 	 * @param cuentaProducto
 	 */
-	public Boolean insertarCuentaProducto(CuentasProductosDTO cuentaProducto) {
+	public void insertarCuentaProducto(CuentasProductosDTO cuentaProducto) {
 		em.createNativeQuery(SQLConstant.INSERT_CUENTAS_PRODUCTOS)
 				.setParameter("idEmpresa", cuentaProducto.getIdEmpresa())
 				.setParameter("idProducto", cuentaProducto.getIdProducto())
 				.setParameter("idCuenta", cuentaProducto.getIdCuenta())
 				.setParameter("codCuenta", cuentaProducto.getCuentaAsociada()).executeUpdate();
 		
-		return true;
 	}
 
 }

@@ -130,6 +130,13 @@ public class MultinivelResource {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa", e.getMessage());
 		}
 	}
+	
+	/**
+	 * Metodo encargado de almacenar la configuracion de productos, comisiones y cuentas 
+	 * relacionados a una empresa
+	 * 
+	 * @param productosEmpresaConf
+	 */
 	@PostMapping(path = "/asociarConfigProductosEmpresas",
 			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
 			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -140,8 +147,8 @@ public class MultinivelResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> asociarConfigProductosEmpresas(@RequestBody DatosEmpresaProductoConfiguracionDTO productosEmpresaConf) {
 		try {
-			productosEmpresaConf.toString();
-			return Util.getResponseSuccessful(this.multinivelService.asociarConfigProductosEmpresas(productosEmpresaConf));
+			this.multinivelService.asociarConfigProductosEmpresas(productosEmpresaConf);
+			return Util.getResponseOk();
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
 		}
