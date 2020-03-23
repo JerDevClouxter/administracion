@@ -11,17 +11,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.administracion.builder.Builder;
 import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.Numero;
 import com.administracion.constant.SQLConstant;
 import com.administracion.dto.EmpresasDTO;
 import com.administracion.dto.multinivel.ChildrenDTO;
+import com.administracion.dto.multinivel.ComisionesDTO;
+import com.administracion.dto.multinivel.CuentasDTO;
 import com.administracion.dto.multinivel.CuentasProductosDTO;
 import com.administracion.dto.multinivel.DatosEmpresaProductoConfiguracionDTO;
 import com.administracion.dto.multinivel.EmpresasIdUsuarioDTO;
 import com.administracion.dto.multinivel.EmpresasProductosComisionesDTO;
 import com.administracion.dto.multinivel.EmpresasProductosDTO;
+import com.administracion.dto.multinivel.ProductosDTO;
+import com.administracion.entity.Comisiones;
+import com.administracion.entity.Cuentas;
+import com.administracion.entity.Productos;
+import com.administracion.repository.IComisionesRepository;
+import com.administracion.repository.ICuentasRepository;
 import com.administracion.repository.IEmpresasRepository;
+import com.administracion.repository.IProductosRepository;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
 
@@ -43,6 +53,76 @@ public class MultinivelService {
 	@Autowired
 	private IEmpresasRepository empresaRepository;
 
+	
+	/**
+	 * Repository que contiene los metodos utilitarios para la persistencia de la
+	 * entidad PRODUCTOS
+	 */
+	@Autowired
+	private IProductosRepository productosRepository;
+	
+	/**
+	 * Repository que contiene los metodos utilitarios para la persistencia de la
+	 * entidad COMISIONES
+	 */
+	@Autowired
+	private IComisionesRepository comisionesRepository;
+	
+	/**
+	 * Repository que contiene los metodos utilitarios para la persistencia de la
+	 * entidad CUENTAS
+	 */
+	@Autowired
+	private ICuentasRepository cuentasRepository;
+
+	/**
+	 * metodo encargado de buscar los productos existentes en el sistema
+	 * 
+	 * @return List<ProductosDTO>
+	 * @throws BusinessException
+	 */
+	public List<ProductosDTO> consultarProductos() throws BusinessException {
+		List<ProductosDTO> listProductosDTO = null;
+		Builder<Productos, ProductosDTO> builder = new Builder<>(ProductosDTO.class);
+		List<Productos> listProductos = this.productosRepository.findAll();
+		if (!listProductos.isEmpty()) {
+			listProductosDTO = builder.copy(listProductos);
+		}
+		return listProductosDTO;
+	}
+	
+	/**
+	 * metodo encargado de buscar las comisiones existentes en el sistema
+	 * 
+	 * @return List<ComisionesDTO>
+	 * @throws BusinessException
+	 */
+	public List<ComisionesDTO> consultarComisiones() throws BusinessException {
+		List<ComisionesDTO> listComisionesDTO = null;
+		Builder<Comisiones, ComisionesDTO> builder = new Builder<>(ComisionesDTO.class);
+		List<Comisiones> listComisiones = this.comisionesRepository.findAll();
+		if (!listComisiones.isEmpty()) {
+			listComisionesDTO = builder.copy(listComisiones);
+		}
+		return listComisionesDTO;
+	}
+	
+	/**
+	 * metodo encargado de buscar las cuentas existentes en el sistema
+	 * 
+	 * @return List<CuentasDTO>
+	 * @throws BusinessException
+	 */
+	public List<CuentasDTO> consultarCuentas() throws BusinessException {
+		List<CuentasDTO> listCuentasDTO = null;
+		Builder<Cuentas, CuentasDTO> builder = new Builder<>(CuentasDTO.class);
+		List<Cuentas> listCuentas = this.cuentasRepository.findAll();
+		if (!listCuentas.isEmpty()) {
+			listCuentasDTO = builder.copy(listCuentas);
+		}
+		return listCuentasDTO;
+	}
+	
 	/**
 	 * Metodo encargado de consultar las empresas por idUsuario
 	 * 
@@ -134,23 +214,9 @@ public class MultinivelService {
 						Util.getValue(result, Numero.SEIS.valueI) != null ? Util.getValue(result, Numero.SEIS.valueI)
 								: "");
 				empProducto.setIdEmpresa(Long.valueOf(Util.getValue(result, Numero.SIETE.valueI)));
+				
+				empProductosList.add(empProducto);
 
-				if (!esEditarConfiguracion) {
-					if (empProducto.getValorMinimo() == null || empProducto.getValorMinimo() == 0.0) {
-						empProductosList.add(empProducto);
-					}
-
-				} else if (esEditarConfiguracion) {
-					if (empProducto.getValorMinimo() != null && empProducto.getValorMinimo() > 0.0) {
-						empProductosList.add(empProducto);
-					}
-					
-				}
-
-			}
-			if (!esEditarConfiguracion && empProductosList.isEmpty()) {
-				throw new BusinessException(
-						MessagesBussinesKey.KEY_ASOCIACION_EXISTENTE_PRODUCTOS_EMPRESA_SELECCIONADA.value);
 			}
 		} else {
 			throw new BusinessException(MessagesBussinesKey.KEY_SIN_ASOCIACION_PRODUCTOS_EMPRESA_SELECCIONADA.value);
@@ -308,6 +374,58 @@ public class MultinivelService {
 				.setParameter("idEmpresa", cuentasConfigEmpPro.getIdEmpresa())
 				.setParameter("idProducto", cuentasConfigEmpPro.getIdProducto())
 				.setParameter("idCuenta", cuentasConfigEmpPro.getIdCuenta()).executeUpdate();
+	}
+	
+	/**
+	 * Metodo para insertar los productos por empresa
+	 * 
+	 * @param productosEmpresa
+	 */
+	public Boolean insertarEmpresaProducto(EmpresasProductosDTO productosEmpresa) {
+		em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS)
+		.setParameter("idEmpresa", productosEmpresa.getIdEmpresa())
+		.setParameter("idProducto", productosEmpresa.getIdProducto())
+		.setParameter("valorMinimo", productosEmpresa.getValorMinimo())
+		.setParameter("valorMaximo", productosEmpresa.getValorMaximo())
+		.setParameter("valorMaximoDia", productosEmpresa.getValorMaximoDia())
+		.setParameter("idEstado", productosEmpresa.getIdEstado())
+		.setParameter("horaInicioVenta", productosEmpresa.getHoraInicioVenta())
+		.setParameter("horaFinalVenta", productosEmpresa.getHoraFinalVenta()).executeUpdate();
+		
+		return true;
+	}
+	
+	/**
+	 * Metodo para insertar comisiones de productos por empresa
+	 * 
+	 * @param comisionesEmpPro
+	 */
+	public Boolean insertarEmpresaProductoComisiones(EmpresasProductosComisionesDTO comisionesEmpPro) {
+		em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS_COMISIONES)
+				.setParameter("idEmpresa", comisionesEmpPro.getIdEmpresa())
+				.setParameter("idProducto", comisionesEmpPro.getIdProducto())
+				.setParameter("idComision", comisionesEmpPro.getIdComision())
+				.setParameter("porcentajeComision", comisionesEmpPro.getPorcentajeComision())
+				.setParameter("valorFijoComision", comisionesEmpPro.getValorFijoComision())
+				.setParameter("idEstado", comisionesEmpPro.getIdEstado()).executeUpdate();
+		
+		return true;
+	}
+
+	/**
+	 * Metodo para insertar cuentas contables de productos por
+	 * empresa
+	 * 
+	 * @param cuentaProducto
+	 */
+	public Boolean insertarCuentaProducto(CuentasProductosDTO cuentaProducto) {
+		em.createNativeQuery(SQLConstant.INSERT_CUENTAS_PRODUCTOS)
+				.setParameter("idEmpresa", cuentaProducto.getIdEmpresa())
+				.setParameter("idProducto", cuentaProducto.getIdProducto())
+				.setParameter("idCuenta", cuentaProducto.getIdCuenta())
+				.setParameter("codCuenta", cuentaProducto.getCuentaAsociada()).executeUpdate();
+		
+		return true;
 	}
 
 }

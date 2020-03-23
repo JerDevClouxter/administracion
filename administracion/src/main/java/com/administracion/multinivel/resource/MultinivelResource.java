@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiResponses;
  * relacionadas con multinivel localhost:puerto/path_name/
  */
 @RestController
-@RequestMapping("/multinivel")
+@RequestMapping("/configurarAsociacion")
 public class MultinivelResource {
 
 	@Autowired

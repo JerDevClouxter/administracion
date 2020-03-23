@@ -4,4 +4,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.administracion.entity.Comisiones;
 
-public interface ComisionesRepository extends JpaRepository<Comisiones, Long> {}
+public interface IComisionesRepository extends JpaRepository<Comisiones, Long> {}

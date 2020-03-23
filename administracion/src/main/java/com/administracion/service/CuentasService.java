@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.administracion.builder.Builder;
 import com.administracion.dto.CuentasDTO;
 import com.administracion.entity.Cuentas;
-import com.administracion.repository.CuentasRepository;
+import com.administracion.repository.ICuentasRepository;
 
 /**
  * Service que contiene los procesos de negocio para las CUENTAS
@@ -20,7 +20,7 @@ public class CuentasService {
 
 	/** Repository que contiene los metodos utilitarios para la persistencia de la entidad CUENTAS */
 	@Autowired
-	private CuentasRepository cuentaRepository;
+	private ICuentasRepository cuentaRepository;
 	
 	public List<CuentasDTO> findAll() {
 		List<CuentasDTO> lstCuentasDTO = null;
