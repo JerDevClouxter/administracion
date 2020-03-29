@@ -17,7 +17,7 @@ public class CuentasProductosDTO implements Serializable {
 	private Long idCuenta;
 	private String codCuenta;
 	private String nombreCuenta;
-	private Integer cuentaAsociada;
 	private String nombreProducto;
+	private Boolean esPrimerVez;
 	
 }

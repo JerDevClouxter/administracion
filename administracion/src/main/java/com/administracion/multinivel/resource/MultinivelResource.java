@@ -67,9 +67,9 @@ public class MultinivelResource {
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
-	public ResponseEntity<Object> consultarProductosIdEmpresa(@RequestParam("idEmpresa") Long idEmpresa, @RequestParam("esEditarConfiguracion") Boolean esEditarConfiguracion) {
+	public ResponseEntity<Object> consultarProductosIdEmpresa(@RequestParam("idEmpresa") Long idEmpresa, @RequestParam("idEmpresaPadre") Long idEmpresaPadre) {
 		try {
-			return Util.getResponseSuccessful(this.multinivelService.consultarProductosIdEmpresa(idEmpresa, esEditarConfiguracion));
+			return Util.getResponseSuccessful(this.multinivelService.consultarProductosIdEmpresa(idEmpresa, idEmpresaPadre, true));
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
@@ -93,10 +93,10 @@ public class MultinivelResource {
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> consultarEmpresaProductosComision(@RequestParam("idEmpresa") Long idEmpresa,
-			@RequestParam("idProducto") Long idProducto) {
+			@RequestParam("idEmpresaPadre") Long idEmpresaPadre, @RequestParam("idProducto") Long idProducto) {
 		try {
 			return Util.getResponseSuccessful(
-					this.multinivelService.consultarEmpresaProductosComision(idEmpresa, idProducto));
+					this.multinivelService.consultarEmpresaProductosComision(idEmpresa, idEmpresaPadre,idProducto, true));
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
@@ -120,10 +120,10 @@ public class MultinivelResource {
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> consultarCuentasProductosEmpresa(@RequestParam("idEmpresa") Long idEmpresa,
-			@RequestParam("idProducto") Long idProducto) {
+			@RequestParam("idEmpresaPadre") Long idEmpresaPadre, @RequestParam("idProducto") Long idProducto) {
 		try {
 			return Util.getResponseSuccessful(
-					this.multinivelService.consultarCuentasProductosEmpresa(idEmpresa, idProducto));
+					this.multinivelService.consultarCuentasProductosEmpresa(idEmpresa, idEmpresaPadre, idProducto));
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
@@ -149,8 +149,10 @@ public class MultinivelResource {
 		try {
 			this.multinivelService.asociarConfigProductosEmpresas(productosEmpresaConf);
 			return Util.getResponseOk();
+		}catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
+			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".asociarConfigProductosEmpresas ", e.getMessage());
 		}
 	}
 }

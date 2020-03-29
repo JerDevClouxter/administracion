@@ -19,7 +19,7 @@ public class EmpresasProductosComisionesDTO  implements Serializable {
 	private Double porcentajeComision;
 	private Double valorFijoComision;
 	private String idEstado;
-	private Long idEmpProCom;
 	private String nombreProducto;
+	private Boolean esPrimerVez;
 	
 }

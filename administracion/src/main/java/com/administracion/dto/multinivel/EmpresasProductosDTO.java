@@ -22,5 +22,5 @@ public class EmpresasProductosDTO implements Serializable {
 	private String horaFinalVenta;
 	private String nombreProducto;
 	private Integer idEstado;
-	private Boolean esEditarConfiguracion;
+	private Boolean esPrimerVez;
 }

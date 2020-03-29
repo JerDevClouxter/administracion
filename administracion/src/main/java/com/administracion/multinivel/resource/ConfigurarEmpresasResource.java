@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,29 @@ public class ConfigurarEmpresasResource {
 
 	@Autowired
 	private MultinivelService multinivelService;
+	
+	/**
+	 * Metodo encargado de consultar las empresas padre por idUsuario
+	 * 
+	 * @param idUSuario
+	 * @return List<EmpresasDTO>
+	 * @throws BusinessException
+	 */
+	@GetMapping(path = "/consultarEmpresasPadreIdUsuario/{idUSuario}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Consultar Empresas padre por idUSuario", notes = "Operación para consular empresas padre asociadas al usaurio")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	public ResponseEntity<Object> consultarEmpresasPadreIdUsuario(@PathVariable Long idUSuario) {
+		try {
+			return Util.getResponseSuccessful(this.multinivelService.consultarEmpresasPadreIdUsuario(idUSuario));
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
+		} catch (Exception e) {
+			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarEmpresasPadreIdUsuario", e.getMessage());
+		}
+	}
 	
 	/**
 	 * metodo encargado de buscar los productos existentes en el sistema
@@ -71,7 +95,6 @@ public class ConfigurarEmpresasResource {
 		}
 	}
 	
-	
 	/**
 	 * metodo encargado de buscar las cuentas existentes en el sistema
 	 * 
@@ -94,7 +117,6 @@ public class ConfigurarEmpresasResource {
 		}
 	}
 	
-	
 	/**
 	 * Metodo encargado de almacenar los productos relacionados a una empresa
 	 * @param productosEmpresa
@@ -111,6 +133,8 @@ public class ConfigurarEmpresasResource {
 		try {
 			this.multinivelService.insertarEmpresaProducto(productosEmpresa);
 			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
 		}
@@ -133,6 +157,8 @@ public class ConfigurarEmpresasResource {
 		try {
 			this.multinivelService.insertarEmpresaProductoComisiones(comisionesEmpPro);
 			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarCuentasProductosEmpresa ", e.getMessage());
 		}
@@ -155,6 +181,8 @@ public class ConfigurarEmpresasResource {
 		try {
 			this.multinivelService.insertarCuentaProducto(cuentaProducto);
 			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
 			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".insertarCuentaProducto ", e.getMessage());
 		}
