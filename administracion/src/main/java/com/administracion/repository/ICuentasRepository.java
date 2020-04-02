@@ -9,4 +9,4 @@ import com.administracion.entity.Cuentas;
  * Spring data repository para la entidad de CUENTAS
  */
 @Repository
-public interface CuentasRepository extends JpaRepository<Cuentas, Long> {}
+public interface ICuentasRepository extends JpaRepository<Cuentas, Long> {}

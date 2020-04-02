@@ -1,6 +1,8 @@
 package com.administracion.dto;
 
 import java.io.Serializable;
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -27,5 +29,11 @@ public class EmpresasDTO implements Serializable {
 	
 	/** representante legal de la EMPRESA */
 	private String representanteLegal;
+	
+	/** Identificador empresa padre */
+	private Long idEmpresaPadre;
+	
+	/** Lista de empresas hijas */
+	private List<EmpresasDTO> empresasHija;
 
 }

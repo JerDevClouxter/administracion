@@ -12,10 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
+import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.Numero;
 import com.administracion.constant.SQLConstant;
 import com.administracion.dto.EmpresasDTO;
 import com.administracion.dto.ProductosDTO;
+import com.administracion.dto.multinivel.ChildrenDTO;
+import com.administracion.dto.multinivel.EmpresasIdUsuarioDTO;
+import com.administracion.dto.multinivel.EmpresasProductosDTO;
 import com.administracion.entity.Empresas;
 import com.administracion.repository.IEmpresasRepository;
 import com.administracion.util.BusinessException;
@@ -33,6 +37,7 @@ public class EmpresasService {
 	/** Contexto de la persistencia del sistema */
 	@PersistenceContext
 	private EntityManager em;
+	
 	/**
 	 * Repository que contiene los metodos utilitarios para la persistencia de la
 	 * entidad EMPRESAS
@@ -40,9 +45,9 @@ public class EmpresasService {
 	@Autowired
 	private IEmpresasRepository empresaRepository;
 
-	public List<EmpresasDTO> findAll() throws Exception {
+	public List<EmpresasDTO> findAll() throws BusinessException {
 		List<EmpresasDTO> lstEmpresasDTO = null;
-		Builder<Empresas, EmpresasDTO> builder = new Builder<Empresas, EmpresasDTO>(EmpresasDTO.class);
+		Builder<Empresas, EmpresasDTO> builder = new Builder<>(EmpresasDTO.class);
 		List<Empresas> lstEmpresas = this.empresaRepository.findAll();
 		if (!lstEmpresas.isEmpty()) {
 			lstEmpresasDTO = builder.copy(lstEmpresas);
@@ -56,17 +61,18 @@ public class EmpresasService {
 		return this.empresaRepository.save(builder.copy(empresaDTO));
 	}
 
-	//Pendiente definir manejo de onjetos con DTO, para no retornar la entidad
 	@Transactional(readOnly = true)
-	public Empresas findByIdEmpresa(Long idEmpresa) throws BusinessException {
+	public EmpresasDTO findByIdEmpresa(Long idEmpresa) throws BusinessException {
 
 		Empresas empresa = empresaRepository.findByIdEmpresa(idEmpresa);
 
 		if (empresa != null) {
-			return empresa;
+			Builder<Empresas, EmpresasDTO> buildEmpresaDTO = new Builder<Empresas, EmpresasDTO>(EmpresasDTO.class);
+			
+			return buildEmpresaDTO.copy(empresa);
+		}else {
+			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_EMPRESA_POR_IDUSUARIO.value);
 		}
-		// Pendiente estandarizar manejo de errores
-		throw new BusinessException("No se encontro data");
 
 	}
 
@@ -91,6 +97,7 @@ public class EmpresasService {
 		return empresaDTOList;
 	}
 
+	
 	/**
 	 * metodo encargado de filtrar los productos para una empresa
 	 * @param idEmpresa

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.administracion.builder.Builder;
 import com.administracion.dto.ComisionesDTO;
 import com.administracion.entity.Comisiones;
-import com.administracion.repository.ComisionesRepository;
+import com.administracion.repository.IComisionesRepository;
 
 /**
  * @service contiene los procesos de negocio para comisiones
@@ -19,7 +19,7 @@ import com.administracion.repository.ComisionesRepository;
 public class ComisionesService {
 
 	@Autowired
-	private ComisionesRepository comisionRepository;
+	private IComisionesRepository comisionRepository;
 	
 	public List<ComisionesDTO> findAll() {
 		List<ComisionesDTO> listComisionesDTO = null;
