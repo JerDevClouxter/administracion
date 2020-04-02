@@ -155,7 +155,7 @@ public class MultinivelService {
 	}
 	
 	/**
-	 * Metodo encargado de consultar las empresas padre cn sus respectivos hijos
+	 * Metodo encargado de consultar las empresas padre con sus respectivos hijos
 	 * por idUsuario
 	 * 
 	 * @param idUSuario
@@ -229,6 +229,8 @@ public class MultinivelService {
 			//Consulta los productos asociados al padre, para saber cuales puede comecializar la hija
 			listaProductosEmprePadre = consultarProductosEmpresa(idEmpresaPadre, validarExistencia);
 
+			existeComisionAsociadaProdPadre(listaProductosEmprePadre);
+			
 			//Consulto si ya hay productos configurados para la hija
 			listaProductosEmpreHija = consultarProductosEmpresa(idEmpresa, false);
 			/**
@@ -267,6 +269,21 @@ public class MultinivelService {
 		
 		
 		
+	}
+
+	private void existeComisionAsociadaProdPadre(List<EmpresasProductosDTO> listaProductosEmprePadre)
+			throws BusinessException {
+		//Boolean existe = true;
+		if (listaProductosEmprePadre != null && !listaProductosEmprePadre.isEmpty()) {
+			for (EmpresasProductosDTO empresasProductosDTO : listaProductosEmprePadre) {
+				List<EmpresasProductosComisionesDTO> existeComision = 
+						consultarComisionProdEmpresa(empresasProductosDTO.getIdEmpresa(), empresasProductosDTO.getIdProducto(), false);
+				if (existeComision.isEmpty()) {
+					listaProductosEmprePadre.remove(empresasProductosDTO);
+				}
+			}
+		}
+		//return existe;
 	}
 
 	private List<EmpresasProductosDTO> consultarProductosEmpresa(Long idEmpresa, Boolean validarExistencia)
@@ -336,6 +353,9 @@ public class MultinivelService {
 					
 					if (empresasComProductosPadre.getIdComision().equals(empresasComProductosHija.getIdComision()) &&
 							empresasComProductosPadre.getIdProducto().equals(empresasComProductosHija.getIdProducto())) {
+						
+						empresasComProductosHija.setPorcentajeComisionPadre(empresasComProductosPadre.getPorcentajeComision());
+						empresasComProductosHija.setValorFijoComisionPadre(empresasComProductosPadre.getValorFijoComision());
 						exiteRelacionPadreHija = true;
 						break;
 					}
@@ -348,6 +368,8 @@ public class MultinivelService {
 					empresaComisionProducto.setIdProducto(empresasComProductosPadre.getIdProducto());
 					empresaComisionProducto.setIdComision(empresasComProductosPadre.getIdComision());
 					empresaComisionProducto.setNombreProducto(empresasComProductosPadre.getNombreProducto());
+					empresaComisionProducto.setPorcentajeComisionPadre(empresasComProductosPadre.getPorcentajeComision());
+					empresaComisionProducto.setValorFijoComisionPadre(empresasComProductosPadre.getValorFijoComision());
 					empresaComisionProducto.setPorcentajeComision(0.0);
 					empresaComisionProducto.setValorFijoComision(0.0);
 					empresaComisionProducto.setEsPrimerVez(true);
@@ -478,12 +500,12 @@ public class MultinivelService {
 	 */
 	@Transactional
 	public void asociarConfigProductosEmpresas(DatosEmpresaProductoConfiguracionDTO productosEmpresaConf)
-			throws BusinessException {
+			throws Exception {
 
 		try {
 
 			// Se guarda la asociación de productos
-			if (productosEmpresaConf.getProductosConfEmpresa() != null) {
+			if (productosEmpresaConf.getProductosConfEmpresa() != null && productosEmpresaConf.getComisionesConfEmpPro() != null) {
 				for (EmpresasProductosDTO prodEmpresa : productosEmpresaConf.getProductosConfEmpresa()) {
 					guardarProductosConfEmpresa(prodEmpresa);
 				}
@@ -497,14 +519,18 @@ public class MultinivelService {
 			}
 
 			// Se guarda la asociación de cuentas (opcional)
-			//if (productosEmpresaConf.getCuentasConfigEmpPro() != null) {
+			if (productosEmpresaConf.getCuentasConfigEmpPro() != null) {
 				for (CuentasProductosDTO cueProEmpresa : productosEmpresaConf.getCuentasConfigEmpPro()) {
-					guardarCuentasConfigEmpPro(cueProEmpresa);
+					if (cueProEmpresa.getCodCuenta() != null && !cueProEmpresa.getCodCuenta().equals("")) {
+						guardarCuentasConfigEmpPro(cueProEmpresa);
+					}
+					
 				}
-			//}
+			}
 
 		} catch (Exception e) {
-			throw new BusinessException(MessagesBussinesKey.KEY_SIN_ASOCIACION_COMISION_PRODUCTOS_EMPRESA.value);
+			em.getTransaction().rollback();
+			throw e;
 		}
 	}
 
@@ -621,7 +647,8 @@ public class MultinivelService {
 			if (comisionPoduEmpresaList != null && !comisionPoduEmpresaList.isEmpty()) {
 
 				for (EmpresasProductosComisionesDTO empresasComisionProductosDTO : comisionPoduEmpresaList) {
-					if (empresasComisionProductosDTO.getIdComision().equals(comisionesEmpPro.getIdComision())) {
+					if (empresasComisionProductosDTO.getIdProducto().equals(comisionesEmpPro.getIdProducto()) || 
+							empresasComisionProductosDTO.getIdComision().equals(comisionesEmpPro.getIdComision())) {
 						throw new BusinessException(
 								MessagesBussinesKey.KEY_CONFIGURACION_COMISION_PRODUCTO_EMPRESA_EXISTENTE.value);
 					}
@@ -652,7 +679,8 @@ public class MultinivelService {
 			if (comisionPoduEmpresaList != null && !comisionPoduEmpresaList.isEmpty()) {
 
 				for (CuentasProductosDTO empresasCuentaProductosDTO : comisionPoduEmpresaList) {
-					if (empresasCuentaProductosDTO.getIdCuenta().equals(cuentaProducto.getIdCuenta())) {
+					if ( empresasCuentaProductosDTO.getIdProducto().equals(cuentaProducto.getIdProducto()) ||
+							empresasCuentaProductosDTO.getIdCuenta().equals(cuentaProducto.getIdCuenta())) {
 						throw new BusinessException(
 								MessagesBussinesKey.KEY_CONFIGURACION_CUENTA_PRODUCTO_EMPRESA_EXISTENTE.value);
 					}

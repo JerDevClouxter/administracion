@@ -21,5 +21,7 @@ public class EmpresasProductosComisionesDTO  implements Serializable {
 	private String idEstado;
 	private String nombreProducto;
 	private Boolean esPrimerVez;
+	private Double porcentajeComisionPadre;
+	private Double valorFijoComisionPadre;
 	
 }
