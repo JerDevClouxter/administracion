@@ -1,4 +1,4 @@
-package com.administracion.multinivel.resource;
+package com.administracion.resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.administracion.dto.multinivel.DatosEmpresaProductoConfiguracionDTO;
-import com.administracion.multinivel.service.MultinivelService;
+import com.administracion.service.MultinivelService;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
 

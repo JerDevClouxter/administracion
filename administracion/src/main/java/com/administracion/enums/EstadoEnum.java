@@ -1,4 +1,4 @@
-package com.administracion.multinivel.enums;
+package com.administracion.enums;
 
 public enum EstadoEnum {
 
