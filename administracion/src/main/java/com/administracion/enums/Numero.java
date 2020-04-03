@@ -1,8 +1,7 @@
-package com.administracion.constant;
+package com.administracion.enums;
 
 /**
  * Enum que contiene todos los números que se utilizaran
- *
  */
 public enum Numero {
 
@@ -17,5 +16,4 @@ public enum Numero {
 		this.valueI = valueI;
 		this.valueL = valueL;
 	}
-
 }

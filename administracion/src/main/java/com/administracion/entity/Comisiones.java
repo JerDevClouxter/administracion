@@ -19,14 +19,9 @@ import lombok.Data;
 @Table(name = "COMISIONES")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Comisiones implements Serializable {
-
-	/**
-	 * Serial version por defecto
-	 */
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	private Long idComision;
 	private String nombre;
-
 }

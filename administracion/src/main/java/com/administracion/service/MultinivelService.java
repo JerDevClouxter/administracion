@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
 import com.administracion.constant.MessagesBussinesKey;
-import com.administracion.constant.Numero;
+import com.administracion.enums.Numero;
 import com.administracion.constant.SQLConstant;
-import com.administracion.dto.EmpresasDTO;
+import com.administracion.dto.transversal.EmpresasDTO;
 import com.administracion.dto.multinivel.ChildrenDTO;
 import com.administracion.dto.multinivel.ComisionesDTO;
 import com.administracion.dto.multinivel.CuentasDTO;
@@ -31,7 +31,6 @@ import com.administracion.entity.Productos;
 import com.administracion.enums.EstadoEnum;
 import com.administracion.repository.IComisionesRepository;
 import com.administracion.repository.ICuentasRepository;
-import com.administracion.repository.IEmpresasRepository;
 import com.administracion.repository.IProductosRepository;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
@@ -45,13 +44,6 @@ public class MultinivelService {
 	/** Contexto de la persistencia del sistema */
 	@PersistenceContext
 	private EntityManager em;
-
-	/**
-	 * Repository que contiene los metodos utilitarios para la persistencia de la
-	 * entidad EMPRESAS
-	 */
-	@Autowired
-	private IEmpresasRepository empresaRepository;
 
 	/**
 	 * Repository que contiene los metodos utilitarios para la persistencia de la

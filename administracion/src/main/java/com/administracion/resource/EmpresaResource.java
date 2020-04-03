@@ -42,7 +42,7 @@ public class EmpresaResource {
 			return Util.getResponseError(EmpresaResource.class.getSimpleName() + ".consultarEmpresa", e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Metodo encargado de consultar los productospara una empresa
 	 * @param idEmpresa id para consulta
@@ -63,7 +63,7 @@ public class EmpresaResource {
 			return Util.getResponseError(EmpresaResource.class.getSimpleName() + ".consultarEmpresa", e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Metodo encargado de consultar las empresa
 	 * @return listado de empresas
@@ -83,6 +83,4 @@ public class EmpresaResource {
 			return Util.getResponseError(EmpresaResource.class.getSimpleName() + ".consultarLoteria", e.getMessage());
 		}
 	}
-
-
 }

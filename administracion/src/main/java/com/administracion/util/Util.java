@@ -3,13 +3,11 @@ package com.administracion.util;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.administracion.constant.Numero;
+import com.administracion.enums.Numero;
 import com.administracion.dto.transversal.MessageResponseDTO;
 
 /**
- * 
  * Clase que proporciona metodos utilitarios
- *
  */
 public class Util {
 
@@ -46,12 +44,11 @@ public class Util {
 		}
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponseDTO(metodo + error));
 	}
-	
+
 	/**
 	 * Metodo que permite obtener un valor de un array de objecto
 	 */
 	public static String getValue(Object[] data, Integer index) {
 		return data[index] != null ? data[index].toString() : null;
 	}
-
 }

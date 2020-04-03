@@ -8,9 +8,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * Configuraciones generales de spring boot, donde se
  * habilitan las invocaciones http
- * 
- * @author Carlos Andres Diaz
- *
  */
 @Configuration
 public class ConfigurationApp implements WebMvcConfigurer {
@@ -36,5 +33,4 @@ public class ConfigurationApp implements WebMvcConfigurer {
 			.allowedMethods("*")
 			.maxAge(Long.valueOf("3600"));
 	}
-
 }

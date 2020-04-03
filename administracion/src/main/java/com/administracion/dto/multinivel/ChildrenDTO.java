@@ -2,7 +2,7 @@ package com.administracion.dto.multinivel;
 
 import java.io.Serializable;
 
-import com.administracion.dto.EmpresasDTO;
+import com.administracion.dto.transversal.EmpresasDTO;
 
 import lombok.Data;
 

@@ -23,7 +23,7 @@ import lombok.Data;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Empresas implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_empresa")
@@ -40,5 +40,4 @@ public class Empresas implements Serializable {
 	private String telefono;
 	@Column(name = "representante_legal")
 	private String representanteLegal;
-
 }

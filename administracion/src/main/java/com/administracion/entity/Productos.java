@@ -23,10 +23,6 @@ import lombok.Data;
 @Table(name = "PRODUCTOS")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Productos implements Serializable {
-
-	/**
-	 * Serial version por defecto
-	 */
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -39,5 +35,4 @@ public class Productos implements Serializable {
 	private String nombre;
 	@Column(name = "id_estado")
 	private String idEstado;
-
 }
