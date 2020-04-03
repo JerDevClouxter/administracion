@@ -288,7 +288,7 @@ public class MultinivelService {
 		//return existe;
 	}
 
-	private List<EmpresasProductosDTO> consultarProductosEmpresa(Long idEmpresa, Boolean validarExistencia)
+	public List<EmpresasProductosDTO> consultarProductosEmpresa(Long idEmpresa, Boolean validarExistencia)
 			throws BusinessException {
 		List<EmpresasProductosDTO> empProductosList = new ArrayList<>();
 		Query q = em.createNativeQuery(SQLConstant.SELECT_PRODUCTOS_ID_EMPRESA).setParameter("idEmpresa", idEmpresa);

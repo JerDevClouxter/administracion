@@ -188,4 +188,27 @@ public class ConfigurarEmpresasResource {
 		}
 	}
 	
+	/**
+	 * metodo encargado de buscar los productos asociados a una empresa padre
+	 * 
+	 * @param idEmpresa
+	 * @return List<EmpresasProductosDTO>
+	 * @throws BusinessException
+	 */
+	@GetMapping(path = "/consultarProductosEditarIdEmpresa/{idEmpresa}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Consultar productos por idEmpresa padre", notes = "Operación para consular productos asociados a una empresa padre")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	public ResponseEntity<Object> consultarProductosEditarIdEmpresa(@PathVariable Long idEmpresa) {
+		try {
+			return Util.getResponseSuccessful(this.multinivelService.consultarProductosEmpresa(idEmpresa, true));
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
+		} catch (Exception e) {
+			return Util.getResponseError(MultinivelResource.class.getSimpleName() + ".consultarProductosIdEmpresa", e.getMessage());
+		}
+	}
+	
 }
