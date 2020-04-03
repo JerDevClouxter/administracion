@@ -1,4 +1,4 @@
-package com.administracion.multinivel.service;
+package com.administracion.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import com.administracion.dto.multinivel.ProductosDTO;
 import com.administracion.entity.Comisiones;
 import com.administracion.entity.Cuentas;
 import com.administracion.entity.Productos;
-import com.administracion.multinivel.enums.EstadoEnum;
+import com.administracion.enums.EstadoEnum;
 import com.administracion.repository.IComisionesRepository;
 import com.administracion.repository.ICuentasRepository;
 import com.administracion.repository.IEmpresasRepository;
@@ -189,17 +189,19 @@ public class MultinivelService {
 
 			}
 
+			
 			for (EmpresasDTO empresasDTO : empresaDTOList) {
 				EmpresasIdUsuarioDTO empIdUsuDTO = new EmpresasIdUsuarioDTO();
 				empIdUsuDTO.setData(empresasDTO);
-				ChildrenDTO hija = new ChildrenDTO();
+				
+				List<ChildrenDTO> listHija = new ArrayList<>();
 				for (EmpresasDTO empresaHijaDTO : empresaHijaDTOList) {
-					List<ChildrenDTO> listHija = new ArrayList<>();
 					if (empresaHijaDTO.getIdEmpresaPadre().equals(empresasDTO.getIdEmpresa())) {
+						ChildrenDTO hija = new ChildrenDTO();
 						hija.setData(empresaHijaDTO);
 						listHija.add(hija);
 					}
-					if (listHija != null && !listHija.isEmpty()) {
+					if ( !listHija.isEmpty()) {
 						empIdUsuDTO.setChildren(listHija);
 					}
 
@@ -530,7 +532,6 @@ public class MultinivelService {
 
 		} catch (Exception e) {
 			em.getTransaction().rollback();
-			throw e;
 		}
 	}
 
