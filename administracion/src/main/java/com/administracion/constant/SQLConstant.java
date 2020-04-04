@@ -1,5 +1,7 @@
 package com.administracion.constant;
 
+import com.administracion.enums.EstadoEnum;
+
 /**
  * Clase constante que contiene los DMLs Y DDLs para las consultas nativas
  */
@@ -34,4 +36,42 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 
 	public static final String INSERT_CUENTAS_PRODUCTOS = "INSERT INTO CUENTAS_PRODUCTOS(ID_EMPRESA, ID_PRODUCTO, ID_CUENTA, COD_CUENTA)VALUES (:idEmpresa, :idProducto, :idCuenta, :codCuenta)";
 
+	/** SELECT para obtener las solicitudes de calendario sorteo */
+	public static final String SELECT_SOLICITUDES_CALENDARIO_SORTEO =
+		"SELECT "
+			+ "A.ID_AUTORIZACION AS ID_SOLICITUD,"
+			+ "TO_CHAR(A.FECHA_SOLICITUD,'YYYY-MM-DD')AS FECHA_SOLICITUD,"
+			+ "A.HORA_SOLICITUD AS HORA_SOLICITUD,"
+			+ "TA.DESCRIPCION AS TIPO_AUTORIZACION,"
+			+ "CONCAT(P.PRIMER_NOMBRE,' ',P.SEGUNDO_NOMBRE,' ',P.PRIMER_APELLIDO,' ',P.SEGUNDO_APELLIDO) AS SOLICITANTE,"
+			+ "CASE "
+			+ "WHEN AD.CAMPO='" + Constants.ID_SORTEO_DETALLE + "'"
+			+ "	THEN(SELECT L.NOMBRE FROM SORTEOS_DETALLES SD JOIN LOTERIAS L ON(L.ID_LOTERIA=SD.ID_LOTERIA)WHERE SD.ID_SORTEO_DETALLE=AD.VALOR \\:\\:integer)"
+			+ "ELSE "
+			+ "	(SELECT L.NOMBRE FROM SORTEOS_DETALLES SD JOIN LOTERIAS L ON(L.ID_LOTERIA=SD.ID_LOTERIA)WHERE SD.ID_SORTEO=AD.VALOR \\:\\:integer LIMIT 1)"
+			+ "END AS LOTERIA,"
+			+ "CASE "
+			+ "WHEN AD.CAMPO='" + Constants.ID_SORTEO_DETALLE + "'"
+			+ "	THEN(SELECT TO_CHAR(SD.FECHA_SORTEO,'YYYY-MM-DD')FROM SORTEOS_DETALLES SD WHERE SD.ID_SORTEO_DETALLE=AD.VALOR \\:\\:integer)"
+			+ "ELSE"
+			+ "	(SELECT CONCAT(TO_CHAR(SO.FECHA_INICIO,'YYYY-MM-DD'),' / ',TO_CHAR(SO.FECHA_FINAL,'YYYY-MM-DD')) FROM SORTEOS SO WHERE SO.ID_SORTEO=AD.VALOR \\:\\:integer)"
+			+ "END AS FECHA_SORTEO ";
+
+	/** FROM para obtener las solicitudes de calendario sorteo */
+	public static final String FROM_SOLICITUDES_CALENDARIO_SORTEO =
+		"FROM AUTORIZACIONES A "
+		+ "JOIN AUTORIZACIONES_DETALLES AD ON(AD.ID_AUTORIZACION=A.ID_AUTORIZACION)"
+		+ "JOIN TIPOS_AUTORIZACIONES TA ON(TA.ID_TIPO_AUTORIZACION=A.ID_TIPO_AUTORIZACION)"
+		+ "JOIN PERSONAS P ON(P.ID_PERSONA=A.ID_USUARIO_SOLICITANTE)"
+		+ "WHERE (AD.CAMPO='" + Constants.ID_SORTEO + "' OR AD.CAMPO='" + Constants.ID_SORTEO_DETALLE + "')"
+		+ "AND A.ID_ESTADO='" + EstadoEnum.PENDIENTE + "'";
+
+	/** ORDER BY para la solicitudes de calendario sorteo */
+	public static final String ORDERBY_SOLICITUDES_CALENDARIO_SORTEO = " ORDER BY A.FECHA_SOLICITUD ASC";
+
+	/** filtro para obtener las solicitudes calendario sorteo por fecha inicio */
+	public static final String FILTER_SOLICITUDES_CALENDARIO_FECHA_INICIO = " AND A.FECHA_SOLICITUD>=?";
+
+	/** filtro para obtener las solicitudes calendario sorteo por fecha final */
+	public static final String FILTER_SOLICITUDES_CALENDARIO_FECHA_FINAL = " AND A.FECHA_SOLICITUD<=?";
 }
