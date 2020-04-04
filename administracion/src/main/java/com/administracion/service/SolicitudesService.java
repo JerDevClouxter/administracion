@@ -95,7 +95,6 @@ public class SolicitudesService {
 				solicitud.setTipoSolicitud(Util.getValue(programacion, Numero.TRES.valueI));
 				solicitud.setSolicitante(Util.getValue(programacion, Numero.CUATRO.valueI));
 				solicitud.setLoteria(Util.getValue(programacion, Numero.CINCO.valueI));
-				solicitud.setFechaSorteoSerie(Util.getValue(programacion, Numero.SEIS.valueI));
 				response.agregarRegistro(solicitud);
 			}
 		}
