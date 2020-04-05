@@ -13,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.builder.Builder;
 import com.administracion.constant.MessagesBussinesKey;
-import com.administracion.enums.Numero;
 import com.administracion.constant.SQLConstant;
-import com.administracion.dto.transversal.EmpresasDTO;
 import com.administracion.dto.multinivel.ChildrenDTO;
 import com.administracion.dto.multinivel.ComisionesDTO;
 import com.administracion.dto.multinivel.CuentasDTO;
@@ -25,10 +23,12 @@ import com.administracion.dto.multinivel.EmpresasIdUsuarioDTO;
 import com.administracion.dto.multinivel.EmpresasProductosComisionesDTO;
 import com.administracion.dto.multinivel.EmpresasProductosDTO;
 import com.administracion.dto.multinivel.ProductosDTO;
+import com.administracion.dto.transversal.EmpresasDTO;
 import com.administracion.entity.Comisiones;
 import com.administracion.entity.Cuentas;
 import com.administracion.entity.Productos;
 import com.administracion.enums.EstadoEnum;
+import com.administracion.enums.Numero;
 import com.administracion.repository.IComisionesRepository;
 import com.administracion.repository.ICuentasRepository;
 import com.administracion.repository.IProductosRepository;
@@ -145,7 +145,7 @@ public class MultinivelService {
 
 		return empresasListDTO;
 	}
-	
+
 	/**
 	 * Metodo encargado de consultar las empresas padre con sus respectivos hijos
 	 * por idUsuario
@@ -181,11 +181,10 @@ public class MultinivelService {
 
 			}
 
-			
 			for (EmpresasDTO empresasDTO : empresaDTOList) {
 				EmpresasIdUsuarioDTO empIdUsuDTO = new EmpresasIdUsuarioDTO();
 				empIdUsuDTO.setData(empresasDTO);
-				
+
 				List<ChildrenDTO> listHija = new ArrayList<>();
 				for (EmpresasDTO empresaHijaDTO : empresaHijaDTOList) {
 					if (empresaHijaDTO.getIdEmpresaPadre().equals(empresasDTO.getIdEmpresa())) {
@@ -193,7 +192,7 @@ public class MultinivelService {
 						hija.setData(empresaHijaDTO);
 						listHija.add(hija);
 					}
-					if ( !listHija.isEmpty()) {
+					if (!listHija.isEmpty()) {
 						empIdUsuDTO.setChildren(listHija);
 					}
 
@@ -208,7 +207,8 @@ public class MultinivelService {
 	}
 
 	/**
-	 * metodo encargado de buscar los productos asociados a una empresa ya sea padre o hija
+	 * metodo encargado de buscar los productos asociados a una empresa ya sea padre
+	 * o hija
 	 * 
 	 * @param idEmpresa
 	 * @return List<EmpresasProductosDTO>
@@ -216,32 +216,33 @@ public class MultinivelService {
 	 */
 	public List<EmpresasProductosDTO> consultarProductosIdEmpresa(Long idEmpresa, Long idEmpresaPadre,
 			Boolean validarExistencia) throws BusinessException {
-		
+
 		if (idEmpresa != null && idEmpresaPadre != null) {
 			List<EmpresasProductosDTO> listaProductosEmpreHija;
 			List<EmpresasProductosDTO> listaProductosEmprePadre;
-			//Consulta los productos asociados al padre, para saber cuales puede comecializar la hija
+			// Consulta los productos asociados al padre, para saber cuales puede
+			// comecializar la hija
 			listaProductosEmprePadre = consultarProductosEmpresa(idEmpresaPadre, validarExistencia);
 
 			existeComisionAsociadaProdPadre(listaProductosEmprePadre);
-			
-			//Consulto si ya hay productos configurados para la hija
+
+			// Consulto si ya hay productos configurados para la hija
 			listaProductosEmpreHija = consultarProductosEmpresa(idEmpresa, false);
 			/**
-			 * verifico configurados y comparo contra los productos del padre 
-			 * para asegurar que muestra, configurados y los pendientes por asociar
-			 * */
+			 * verifico configurados y comparo contra los productos del padre para asegurar
+			 * que muestra, configurados y los pendientes por asociar
+			 */
 			for (EmpresasProductosDTO empresasProductosPadre : listaProductosEmprePadre) {
 				Boolean exiteRelacionPadreHija = false;
 				for (EmpresasProductosDTO empresasProductosHija : listaProductosEmpreHija) {
-					
+
 					if (empresasProductosPadre.getIdProducto().equals(empresasProductosHija.getIdProducto())) {
 						exiteRelacionPadreHija = true;
 						break;
 					}
-					
+
 				}
-				//Se agregan las configuraciones de productos pendientes de asociar
+				// Se agregan las configuraciones de productos pendientes de asociar
 				if (!exiteRelacionPadreHija) {
 					EmpresasProductosDTO empresaProducto = new EmpresasProductosDTO();
 					empresaProducto.setIdEmpresa(idEmpresa);
@@ -253,33 +254,38 @@ public class MultinivelService {
 					empresaProducto.setEsPrimerVez(true);
 					listaProductosEmpreHija.add(empresaProducto);
 				}
-				
+
 			}
-			
+
 			return listaProductosEmpreHija;
-		}else {
+		} else {
 			return consultarProductosEmpresa(idEmpresa, validarExistencia);
 		}
-		
-		
-		
+
 	}
 
+	
 	private void existeComisionAsociadaProdPadre(List<EmpresasProductosDTO> listaProductosEmprePadre)
 			throws BusinessException {
-		//Boolean existe = true;
 		if (listaProductosEmprePadre != null && !listaProductosEmprePadre.isEmpty()) {
 			for (EmpresasProductosDTO empresasProductosDTO : listaProductosEmprePadre) {
-				List<EmpresasProductosComisionesDTO> existeComision = 
-						consultarComisionProdEmpresa(empresasProductosDTO.getIdEmpresa(), empresasProductosDTO.getIdProducto(), false);
+				List<EmpresasProductosComisionesDTO> existeComision = consultarComisionProdEmpresa(
+						empresasProductosDTO.getIdEmpresa(), empresasProductosDTO.getIdProducto(), false);
 				if (existeComision.isEmpty()) {
 					listaProductosEmprePadre.remove(empresasProductosDTO);
 				}
 			}
 		}
-		//return existe;
 	}
 
+	/**
+	 * Metodo para consultar productos por idEmpresa
+	 * 
+	 * @param idEmpresa
+	 * @param validarExistencia
+	 * @return
+	 * @throws BusinessException
+	 */
 	public List<EmpresasProductosDTO> consultarProductosEmpresa(Long idEmpresa, Boolean validarExistencia)
 			throws BusinessException {
 		List<EmpresasProductosDTO> empProductosList = new ArrayList<>();
@@ -326,60 +332,75 @@ public class MultinivelService {
 	 * @return List<EmpresasProductosDTO>
 	 * @throws BusinessException
 	 */
-	public List<EmpresasProductosComisionesDTO> consultarEmpresaProductosComision(Long idEmpresa, Long idEmpresaPadre,Long idProducto, Boolean validarExistencia)
-			throws BusinessException {
-		
+	public List<EmpresasProductosComisionesDTO> consultarEmpresaProductosComision(Long idEmpresa, Long idEmpresaPadre,
+			Long idProducto, Boolean validarExistencia) throws BusinessException {
+
 		if (idEmpresa != null && idEmpresaPadre != null) {
 			List<EmpresasProductosComisionesDTO> listaComisionesProduEmpreHija;
 			List<EmpresasProductosComisionesDTO> listaProductosEmprePadre;
-			//Consulta las comisones productos asociados al padre, para saber cuales puede comecializar la hija
+			// Consulta las comisones productos asociados al padre, para saber cuales puede
+			// comecializar la hija
 			listaProductosEmprePadre = consultarComisionProdEmpresa(idEmpresaPadre, idProducto, validarExistencia);
 
-			//Consulto si ya hay comisones productos configurados para la hija
+			// Consulto si ya hay comisones productos configurados para la hija
 			listaComisionesProduEmpreHija = consultarComisionProdEmpresa(idEmpresa, idProducto, false);
 			/**
-			 * verifico configurados y comparo contra las comisones productos del padre 
-			 * para asegurar que muestra, configurados y las comisones pendientes por asociar
-			 * */
+			 * verifico configurados y comparo contra las comisones productos del padre para
+			 * asegurar que muestra, configurados y las comisones pendientes por asociar
+			 */
 			for (EmpresasProductosComisionesDTO empresasComProductosPadre : listaProductosEmprePadre) {
 				Boolean exiteRelacionPadreHija = false;
 				for (EmpresasProductosComisionesDTO empresasComProductosHija : listaComisionesProduEmpreHija) {
-					
-					if (empresasComProductosPadre.getIdComision().equals(empresasComProductosHija.getIdComision()) &&
-							empresasComProductosPadre.getIdProducto().equals(empresasComProductosHija.getIdProducto())) {
-						
-						empresasComProductosHija.setPorcentajeComisionPadre(empresasComProductosPadre.getPorcentajeComision());
-						empresasComProductosHija.setValorFijoComisionPadre(empresasComProductosPadre.getValorFijoComision());
+
+					if (empresasComProductosPadre.getIdComision().equals(empresasComProductosHija.getIdComision())
+							&& empresasComProductosPadre.getIdProducto()
+									.equals(empresasComProductosHija.getIdProducto())) {
+
+						empresasComProductosHija
+								.setPorcentajeComisionPadre(empresasComProductosPadre.getPorcentajeComision());
+						empresasComProductosHija
+								.setValorFijoComisionPadre(empresasComProductosPadre.getValorFijoComision());
 						exiteRelacionPadreHija = true;
 						break;
 					}
-					
+
 				}
-				//Se agregan las configuraciones de las comisones productos pendientes de asociar
+				// Se agregan las configuraciones de las comisones productos pendientes de
+				// asociar
 				if (!exiteRelacionPadreHija) {
 					EmpresasProductosComisionesDTO empresaComisionProducto = new EmpresasProductosComisionesDTO();
 					empresaComisionProducto.setIdEmpresa(idEmpresa);
 					empresaComisionProducto.setIdProducto(empresasComProductosPadre.getIdProducto());
 					empresaComisionProducto.setIdComision(empresasComProductosPadre.getIdComision());
 					empresaComisionProducto.setNombreProducto(empresasComProductosPadre.getNombreProducto());
-					empresaComisionProducto.setPorcentajeComisionPadre(empresasComProductosPadre.getPorcentajeComision());
+					empresaComisionProducto
+							.setPorcentajeComisionPadre(empresasComProductosPadre.getPorcentajeComision());
 					empresaComisionProducto.setValorFijoComisionPadre(empresasComProductosPadre.getValorFijoComision());
 					empresaComisionProducto.setPorcentajeComision(0.0);
 					empresaComisionProducto.setValorFijoComision(0.0);
 					empresaComisionProducto.setEsPrimerVez(true);
 					listaComisionesProduEmpreHija.add(empresaComisionProducto);
 				}
-				
+
 			}
-			
+
 			return listaComisionesProduEmpreHija;
-		}else {
+		} else {
 			return consultarComisionProdEmpresa(idEmpresa, idProducto, validarExistencia);
 		}
-		
+
 	}
 
-	private List<EmpresasProductosComisionesDTO> consultarComisionProdEmpresa(Long idEmpresa, Long idProducto,
+	/**
+	 * Consultar comisiones producto empresa hija
+	 * 
+	 * @param idEmpresa
+	 * @param idProducto
+	 * @param validarExistencia
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<EmpresasProductosComisionesDTO> consultarComisionProdEmpresa(Long idEmpresa, Long idProducto,
 			Boolean validarExistencia) throws BusinessException {
 		List<EmpresasProductosComisionesDTO> empProdComisionesList = new ArrayList<>();
 		Query q = em.createNativeQuery(SQLConstant.SELECT_EMPRESAS_PRODUCTOS_COMISIONES_ID_EMPRESA)
@@ -407,6 +428,39 @@ public class MultinivelService {
 	}
 
 	/**
+	 * Consultar comisiones edición empresa padre
+	 * 
+	 * @param idEmpresa
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<EmpresasProductosComisionesDTO> consultarComisionProdEditarEmpresa(Long idEmpresa)
+			throws BusinessException {
+		List<EmpresasProductosComisionesDTO> empProdComisionesList = new ArrayList<>();
+		Query q = em.createNativeQuery(SQLConstant.SELECT_COMISIONES_EDITAR_ID_EMPRESA).setParameter("idEmpresa",
+				idEmpresa);
+		List<Object[]> listaT = q.getResultList();
+		if (listaT != null && !listaT.isEmpty()) {
+			for (Object[] result : listaT) {
+				EmpresasProductosComisionesDTO empProCom = new EmpresasProductosComisionesDTO();
+				empProCom.setIdEmpresa(Long.valueOf(Util.getValue(result, Numero.ZERO.valueI)));
+				empProCom.setIdProducto(Long.valueOf(Util.getValue(result, Numero.UNO.valueI)));
+				empProCom.setIdComision(Long.valueOf(Util.getValue(result, Numero.DOS.valueI)));
+				empProCom.setPorcentajeComision(Util.getValue(result, Numero.TRES.valueI) != null
+						? Double.valueOf(Util.getValue(result, Numero.TRES.valueI))
+						: 0);
+				empProCom.setValorFijoComision(Util.getValue(result, Numero.CUATRO.valueI) != null
+						? Double.valueOf(Util.getValue(result, Numero.CUATRO.valueI))
+						: 0);
+				empProCom.setNombreProducto(Util.getValue(result, Numero.CINCO.valueI));
+				empProCom.setNombreComision(Util.getValue(result, Numero.SEIS.valueI));
+				empProdComisionesList.add(empProCom);
+			}
+		}
+		return empProdComisionesList;
+	}
+
+	/**
 	 * metodo encargado de buscar las cuentas contables asociadas a los productos
 	 * asociados a una empresa
 	 * 
@@ -415,33 +469,36 @@ public class MultinivelService {
 	 * @return List<CuentasProductosDTO>
 	 * @throws BusinessException
 	 */
-	public List<CuentasProductosDTO> consultarCuentasProductosEmpresa(Long idEmpresa, Long idEmpresaPadre, Long idProducto)
-			throws BusinessException {
-		
+	public List<CuentasProductosDTO> consultarCuentasProductosEmpresa(Long idEmpresa, Long idEmpresaPadre,
+			Long idProducto) throws BusinessException {
+
 		if (idEmpresa != null && idEmpresaPadre != null) {
 			List<CuentasProductosDTO> listaCuentasProduEmpreHija;
 			List<CuentasProductosDTO> listaCuentasEmprePadre;
-			//Consulta las comisones productos asociados al padre, para saber cuales puede comecializar la hija
+			// Consulta las comisones productos asociados al padre, para saber cuales puede
+			// comecializar la hija
 			listaCuentasEmprePadre = consultarCuentasProdEmp(idEmpresaPadre, idProducto);
 
-			//Consulto si ya hay comisones productos configurados para la hija
+			// Consulto si ya hay comisones productos configurados para la hija
 			listaCuentasProduEmpreHija = consultarCuentasProdEmp(idEmpresa, idProducto);
 			/**
-			 * verifico configurados y comparo contra las comisones productos del padre 
-			 * para asegurar que muestra, configurados y las comisones pendientes por asociar
-			 * */
+			 * verifico configurados y comparo contra las comisones productos del padre para
+			 * asegurar que muestra, configurados y las comisones pendientes por asociar
+			 */
 			for (CuentasProductosDTO empresasCueProductosPadre : listaCuentasEmprePadre) {
 				Boolean exiteRelacionPadreHija = false;
 				for (CuentasProductosDTO empresasCueProductosHija : listaCuentasProduEmpreHija) {
-					
-					if (empresasCueProductosPadre.getIdCuenta().equals(empresasCueProductosHija.getIdCuenta()) && 
-							empresasCueProductosPadre.getIdProducto().equals(empresasCueProductosHija.getIdProducto())) {
+
+					if (empresasCueProductosPadre.getIdCuenta().equals(empresasCueProductosHija.getIdCuenta())
+							&& empresasCueProductosPadre.getIdProducto()
+									.equals(empresasCueProductosHija.getIdProducto())) {
 						exiteRelacionPadreHija = true;
 						break;
 					}
-					
+
 				}
-				//Se agregan las configuraciones de las comisones productos pendientes de asociar
+				// Se agregan las configuraciones de las comisones productos pendientes de
+				// asociar
 				if (!exiteRelacionPadreHija) {
 					CuentasProductosDTO empresaCuentaProducto = new CuentasProductosDTO();
 					empresaCuentaProducto.setIdEmpresa(idEmpresa);
@@ -451,20 +508,56 @@ public class MultinivelService {
 					empresaCuentaProducto.setEsPrimerVez(true);
 					listaCuentasProduEmpreHija.add(empresaCuentaProducto);
 				}
-				
+
 			}
-			
+
 			return listaCuentasProduEmpreHija;
-		}else {
+		} else {
 			return consultarCuentasProdEmp(idEmpresa, idProducto);
 		}
-		
+
 	}
 
+	/**
+	 * Consultar cuentas producto empresa
+	 * 
+	 * @param idEmpresa
+	 * @param idProducto
+	 * @return
+	 */
 	private List<CuentasProductosDTO> consultarCuentasProdEmp(Long idEmpresa, Long idProducto) {
 		List<CuentasProductosDTO> empProdCueList = new ArrayList<>();
 		Query q = em.createNativeQuery(SQLConstant.SELECT_CUENTAS_PRODUCTOS_EMPRESA)
 				.setParameter("idEmpresa", idEmpresa).setParameter("idProducto", idProducto);
+		List<Object[]> listaT = q.getResultList();
+		if (listaT != null && !listaT.isEmpty()) {
+			for (Object[] result : listaT) {
+				CuentasProductosDTO empProCue = new CuentasProductosDTO();
+				empProCue.setIdEmpresa(Long.valueOf(Util.getValue(result, Numero.ZERO.valueI)));
+				empProCue.setIdProducto(Long.valueOf(Util.getValue(result, Numero.UNO.valueI)));
+				empProCue.setIdCuenta(Long.valueOf(Util.getValue(result, Numero.DOS.valueI)));
+				empProCue.setCodCuenta(
+						Util.getValue(result, Numero.TRES.valueI) != null ? Util.getValue(result, Numero.TRES.valueI)
+								: "");
+				empProCue.setNombreCuenta(Util.getValue(result, Numero.CUATRO.valueI));
+				empProCue.setNombreProducto(Util.getValue(result, Numero.CINCO.valueI));
+
+				empProdCueList.add(empProCue);
+			}
+		}
+		return empProdCueList;
+	}
+
+	/**
+	 * Consultar cuentas producto empresa padre
+	 * 
+	 * @param idEmpresa
+	 * @return
+	 */
+	public List<CuentasProductosDTO> consultarCuentasEditarEmpresa(Long idEmpresa) throws BusinessException {
+		List<CuentasProductosDTO> empProdCueList = new ArrayList<>();
+		Query q = em.createNativeQuery(SQLConstant.SELECT_CUENTAS_EDITAR_ID_EMPRESA).setParameter("idEmpresa",
+				idEmpresa);
 		List<Object[]> listaT = q.getResultList();
 		if (listaT != null && !listaT.isEmpty()) {
 			for (Object[] result : listaT) {
@@ -499,7 +592,8 @@ public class MultinivelService {
 		try {
 
 			// Se guarda la asociación de productos
-			if (productosEmpresaConf.getProductosConfEmpresa() != null && productosEmpresaConf.getComisionesConfEmpPro() != null) {
+			if (productosEmpresaConf.getProductosConfEmpresa() != null
+					&& productosEmpresaConf.getComisionesConfEmpPro() != null) {
 				for (EmpresasProductosDTO prodEmpresa : productosEmpresaConf.getProductosConfEmpresa()) {
 					guardarProductosConfEmpresa(prodEmpresa);
 				}
@@ -518,7 +612,7 @@ public class MultinivelService {
 					if (cueProEmpresa.getCodCuenta() != null && !cueProEmpresa.getCodCuenta().equals("")) {
 						guardarCuentasConfigEmpPro(cueProEmpresa);
 					}
-					
+
 				}
 			}
 
@@ -534,19 +628,47 @@ public class MultinivelService {
 	 */
 	@Transactional
 	public void guardarProductosConfEmpresa(EmpresasProductosDTO productosConfEmpresa) throws BusinessException {
-			if (productosConfEmpresa.getEsPrimerVez() != null && productosConfEmpresa.getEsPrimerVez()) {
-				insertarEmpresaProducto(productosConfEmpresa);
-			}else {
-				em.createNativeQuery(SQLConstant.UPDATE_ASOCIACION_EMPRESAS_PRODUCTOS)
-				.setParameter("valorMinimo", productosConfEmpresa.getValorMinimo())
-				.setParameter("valorMaximo", productosConfEmpresa.getValorMaximo())
-				.setParameter("valorMaximoDia", productosConfEmpresa.getValorMaximoDia())
-				.setParameter("horaInicioVenta", productosConfEmpresa.getHoraInicioVenta())
-				.setParameter("horaFinalVenta", productosConfEmpresa.getHoraFinalVenta())
-				.setParameter("idEmpresa", productosConfEmpresa.getIdEmpresa())
-				.setParameter("idProducto", productosConfEmpresa.getIdProducto()).executeUpdate();
-			}
-			
+		if (productosConfEmpresa.getEsPrimerVez() != null && productosConfEmpresa.getEsPrimerVez()) {
+			insertarEmpresaProducto(productosConfEmpresa);
+		} else {
+			editarProductosEmpresa(productosConfEmpresa);
+		}
+
+	}
+
+	/**
+	 * Metodo encargado de enviar los productos para editar los productos de una
+	 * empresa padre
+	 * 
+	 * @param productosConfEmpresa
+	 * @throws BusinessException
+	 */
+	@Transactional
+	public void editarProductosConfEmpPadre(DatosEmpresaProductoConfiguracionDTO productosConfEmpresa)
+			throws BusinessException {
+
+		for (EmpresasProductosDTO empresasProductosDTO : productosConfEmpresa.getProductosConfEmpresa()) {
+			editarProductosEmpresa(empresasProductosDTO);
+		}
+
+	}
+
+	/**
+	 * Metodo encargado de editar los productos de una empresa padre
+	 * 
+	 * @param productosConfEmpresa
+	 * @throws BusinessException
+	 */
+	@Transactional
+	public void editarProductosEmpresa(EmpresasProductosDTO empresasProductosDTO) {
+		em.createNativeQuery(SQLConstant.UPDATE_ASOCIACION_EMPRESAS_PRODUCTOS)
+				.setParameter("valorMinimo", empresasProductosDTO.getValorMinimo())
+				.setParameter("valorMaximo", empresasProductosDTO.getValorMaximo())
+				.setParameter("valorMaximoDia", empresasProductosDTO.getValorMaximoDia())
+				.setParameter("horaInicioVenta", empresasProductosDTO.getHoraInicioVenta())
+				.setParameter("horaFinalVenta", empresasProductosDTO.getHoraFinalVenta())
+				.setParameter("idEmpresa", empresasProductosDTO.getIdEmpresa())
+				.setParameter("idProducto", empresasProductosDTO.getIdProducto()).executeUpdate();
 	}
 
 	/**
@@ -557,19 +679,48 @@ public class MultinivelService {
 	@Transactional
 	public void guardarComisionesConfEmpPro(EmpresasProductosComisionesDTO comisionesConfEmpPro)
 			throws BusinessException {
-			if (comisionesConfEmpPro.getEsPrimerVez() != null && comisionesConfEmpPro.getEsPrimerVez()) {
-				insertarEmpresaProductoComisiones(comisionesConfEmpPro);
-			} else {
-				em.createNativeQuery(SQLConstant.UPDATE_ASOCIACION_EMPRESAS_PRODUCTOS_COMISIONES)
-				.setParameter("porcentajeComision", comisionesConfEmpPro.getPorcentajeComision() != null ? 
-						comisionesConfEmpPro.getPorcentajeComision() : 0)
-				.setParameter("valorFijoComision", comisionesConfEmpPro.getValorFijoComision() != null ? 
-						comisionesConfEmpPro.getValorFijoComision() : 0)
+		if (comisionesConfEmpPro.getEsPrimerVez() != null && comisionesConfEmpPro.getEsPrimerVez()) {
+			insertarEmpresaProductoComisiones(comisionesConfEmpPro);
+		} else {
+			editarComiProdEmpresa(comisionesConfEmpPro);
+		}
+
+	}
+
+	/**
+	 * Metodo encargado de enviar a editar las comisiones producto empresa padre
+	 * 
+	 * @param productosConfEmpresa
+	 * @throws BusinessException
+	 */
+	@Transactional
+	public void editarComProdConfEmpPadre(DatosEmpresaProductoConfiguracionDTO productosConfEmpresa)
+			throws BusinessException {
+
+		for (EmpresasProductosComisionesDTO empresasComisProductosDTO : productosConfEmpresa
+				.getComisionesConfEmpPro()) {
+			editarComiProdEmpresa(empresasComisProductosDTO);
+		}
+
+	}
+
+	/**
+	 * Metodo encargado de editar las comisiones producto de una empresa padre
+	 * 
+	 * @param comisionesConfEmpPro
+	 */
+	@Transactional
+	public void editarComiProdEmpresa(EmpresasProductosComisionesDTO comisionesConfEmpPro) {
+		em.createNativeQuery(SQLConstant.UPDATE_ASOCIACION_EMPRESAS_PRODUCTOS_COMISIONES).setParameter(
+				"porcentajeComision",
+				comisionesConfEmpPro.getPorcentajeComision() != null ? comisionesConfEmpPro.getPorcentajeComision() : 0)
+				.setParameter("valorFijoComision",
+						comisionesConfEmpPro.getValorFijoComision() != null
+								? comisionesConfEmpPro.getValorFijoComision()
+								: 0)
 				.setParameter("idEmpresa", comisionesConfEmpPro.getIdEmpresa())
 				.setParameter("idProducto", comisionesConfEmpPro.getIdProducto())
 				.setParameter("idComision", comisionesConfEmpPro.getIdComision()).executeUpdate();
-			}
-
 	}
 
 	/**
@@ -582,15 +733,41 @@ public class MultinivelService {
 	public void guardarCuentasConfigEmpPro(CuentasProductosDTO cuentasConfigEmpPro) throws BusinessException {
 
 		if (cuentasConfigEmpPro.getEsPrimerVez() != null && cuentasConfigEmpPro.getEsPrimerVez()) {
-				insertarCuentaProducto(cuentasConfigEmpPro);
-			} else {
-				em.createNativeQuery(SQLConstant.UPDATE_ASOCIACION_CUENTAS_PRODUCTOS)
+			insertarCuentaProducto(cuentasConfigEmpPro);
+		} else {
+			editarCuentProdEmpresa(cuentasConfigEmpPro);
+		}
+
+	}
+
+	/**
+	 * Metodo encargo de enviar las cuentas producto a editar
+	 * 
+	 * @param productosConfEmpresa
+	 * @throws BusinessException
+	 */
+	@Transactional
+	public void editarCuenProdConfEmpPadre(DatosEmpresaProductoConfiguracionDTO productosConfEmpresa)
+			throws BusinessException {
+
+		for (CuentasProductosDTO empresasComisProductosDTO : productosConfEmpresa.getCuentasConfigEmpPro()) {
+			editarCuentProdEmpresa(empresasComisProductosDTO);
+		}
+
+	}
+
+	/**
+	 * Metodo encargado de editar las cuentas productos empresa padre
+	 * 
+	 * @param cuentasConfigEmpPro
+	 */
+	@Transactional
+	public void editarCuentProdEmpresa(CuentasProductosDTO cuentasConfigEmpPro) {
+		em.createNativeQuery(SQLConstant.UPDATE_ASOCIACION_CUENTAS_PRODUCTOS)
 				.setParameter("idEmpresa", cuentasConfigEmpPro.getIdEmpresa())
 				.setParameter("idProducto", cuentasConfigEmpPro.getIdProducto())
 				.setParameter("idCuenta", cuentasConfigEmpPro.getIdCuenta())
 				.setParameter("codCuenta", cuentasConfigEmpPro.getCodCuenta()).executeUpdate();
-			}
-
 	}
 
 	/**
@@ -601,27 +778,26 @@ public class MultinivelService {
 	@Transactional
 	public void insertarEmpresaProducto(EmpresasProductosDTO productosEmpresa) throws BusinessException {
 
-			List<EmpresasProductosDTO> poductosEmpresaList = consultarProductosIdEmpresa(
-					productosEmpresa.getIdEmpresa(), null, false);
+		List<EmpresasProductosDTO> poductosEmpresaList = consultarProductosIdEmpresa(productosEmpresa.getIdEmpresa(),
+				null, false);
 
-			if (poductosEmpresaList != null && !poductosEmpresaList.isEmpty()) {
+		if (poductosEmpresaList != null && !poductosEmpresaList.isEmpty()) {
 
-				for (EmpresasProductosDTO empresasProductosDTO : poductosEmpresaList) {
-					if (empresasProductosDTO.getIdProducto().equals(productosEmpresa.getIdProducto())) {
-						throw new BusinessException(
-								MessagesBussinesKey.KEY_CONFIGURACION_PRODUCTO_EMPRESA_EXISTENTE.value);
-					}
+			for (EmpresasProductosDTO empresasProductosDTO : poductosEmpresaList) {
+				if (empresasProductosDTO.getIdProducto().equals(productosEmpresa.getIdProducto())) {
+					throw new BusinessException(MessagesBussinesKey.KEY_CONFIGURACION_PRODUCTO_EMPRESA_EXISTENTE.value);
 				}
 			}
-			em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS)
-					.setParameter("idEmpresa", productosEmpresa.getIdEmpresa())
-					.setParameter("idProducto", productosEmpresa.getIdProducto())
-					.setParameter("valorMinimo", productosEmpresa.getValorMinimo())
-					.setParameter("valorMaximo", productosEmpresa.getValorMaximo())
-					.setParameter("valorMaximoDia", productosEmpresa.getValorMaximoDia())
-					.setParameter("idEstado", EstadoEnum.ACTIVO.name())
-					.setParameter("horaInicioVenta", productosEmpresa.getHoraInicioVenta())
-					.setParameter("horaFinalVenta", productosEmpresa.getHoraFinalVenta()).executeUpdate();
+		}
+		em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS)
+				.setParameter("idEmpresa", productosEmpresa.getIdEmpresa())
+				.setParameter("idProducto", productosEmpresa.getIdProducto())
+				.setParameter("valorMinimo", productosEmpresa.getValorMinimo())
+				.setParameter("valorMaximo", productosEmpresa.getValorMaximo())
+				.setParameter("valorMaximoDia", productosEmpresa.getValorMaximoDia())
+				.setParameter("idEstado", EstadoEnum.ACTIVO.name())
+				.setParameter("horaInicioVenta", productosEmpresa.getHoraInicioVenta())
+				.setParameter("horaFinalVenta", productosEmpresa.getHoraFinalVenta()).executeUpdate();
 
 	}
 
@@ -634,27 +810,28 @@ public class MultinivelService {
 	public void insertarEmpresaProductoComisiones(EmpresasProductosComisionesDTO comisionesEmpPro)
 			throws BusinessException {
 
-			List<EmpresasProductosComisionesDTO> comisionPoduEmpresaList = consultarEmpresaProductosComision(
-					comisionesEmpPro.getIdEmpresa(), null, comisionesEmpPro.getIdProducto(), false);
+		List<EmpresasProductosComisionesDTO> comisionPoduEmpresaList = consultarEmpresaProductosComision(
+				comisionesEmpPro.getIdEmpresa(), null, comisionesEmpPro.getIdProducto(), false);
 
-			if (comisionPoduEmpresaList != null && !comisionPoduEmpresaList.isEmpty()) {
+		if (comisionPoduEmpresaList != null && !comisionPoduEmpresaList.isEmpty()) {
 
-				for (EmpresasProductosComisionesDTO empresasComisionProductosDTO : comisionPoduEmpresaList) {
-					if (empresasComisionProductosDTO.getIdProducto().equals(comisionesEmpPro.getIdProducto()) || 
-							empresasComisionProductosDTO.getIdComision().equals(comisionesEmpPro.getIdComision())) {
-						throw new BusinessException(
-								MessagesBussinesKey.KEY_CONFIGURACION_COMISION_PRODUCTO_EMPRESA_EXISTENTE.value);
-					}
+			for (EmpresasProductosComisionesDTO empresasComisionProductosDTO : comisionPoduEmpresaList) {
+				if (empresasComisionProductosDTO.getIdProducto().equals(comisionesEmpPro.getIdProducto())
+						|| empresasComisionProductosDTO.getIdComision().equals(comisionesEmpPro.getIdComision())) {
+					throw new BusinessException(
+							MessagesBussinesKey.KEY_CONFIGURACION_COMISION_PRODUCTO_EMPRESA_EXISTENTE.value);
 				}
 			}
-			em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS_COMISIONES)
-					.setParameter("idEmpresa", comisionesEmpPro.getIdEmpresa())
-					.setParameter("idProducto", comisionesEmpPro.getIdProducto())
-					.setParameter("idComision", comisionesEmpPro.getIdComision())
-					.setParameter("porcentajeComision", comisionesEmpPro.getPorcentajeComision() != null ? comisionesEmpPro.getPorcentajeComision() : 0)
-					.setParameter("valorFijoComision", comisionesEmpPro.getValorFijoComision() != null ? comisionesEmpPro.getValorFijoComision() : 0)
-					.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-
+		}
+		em.createNativeQuery(SQLConstant.INSERT_EMPRESAS_PRODUCTOS_COMISIONES)
+				.setParameter("idEmpresa", comisionesEmpPro.getIdEmpresa())
+				.setParameter("idProducto", comisionesEmpPro.getIdProducto())
+				.setParameter("idComision", comisionesEmpPro.getIdComision())
+				.setParameter("porcentajeComision",
+						comisionesEmpPro.getPorcentajeComision() != null ? comisionesEmpPro.getPorcentajeComision() : 0)
+				.setParameter("valorFijoComision",
+						comisionesEmpPro.getValorFijoComision() != null ? comisionesEmpPro.getValorFijoComision() : 0)
+				.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
 
 	}
 
@@ -665,26 +842,26 @@ public class MultinivelService {
 	 */
 	@Transactional
 	public void insertarCuentaProducto(CuentasProductosDTO cuentaProducto) throws BusinessException {
-		
-			List<CuentasProductosDTO> comisionPoduEmpresaList = consultarCuentasProductosEmpresa(
-					cuentaProducto.getIdEmpresa(), null,cuentaProducto.getIdProducto());
 
-			if (comisionPoduEmpresaList != null && !comisionPoduEmpresaList.isEmpty()) {
+		List<CuentasProductosDTO> comisionPoduEmpresaList = consultarCuentasProductosEmpresa(
+				cuentaProducto.getIdEmpresa(), null, cuentaProducto.getIdProducto());
 
-				for (CuentasProductosDTO empresasCuentaProductosDTO : comisionPoduEmpresaList) {
-					if ( empresasCuentaProductosDTO.getIdProducto().equals(cuentaProducto.getIdProducto()) ||
-							empresasCuentaProductosDTO.getIdCuenta().equals(cuentaProducto.getIdCuenta())) {
-						throw new BusinessException(
-								MessagesBussinesKey.KEY_CONFIGURACION_CUENTA_PRODUCTO_EMPRESA_EXISTENTE.value);
-					}
+		if (comisionPoduEmpresaList != null && !comisionPoduEmpresaList.isEmpty()) {
+
+			for (CuentasProductosDTO empresasCuentaProductosDTO : comisionPoduEmpresaList) {
+				if (empresasCuentaProductosDTO.getIdProducto().equals(cuentaProducto.getIdProducto())
+						|| empresasCuentaProductosDTO.getIdCuenta().equals(cuentaProducto.getIdCuenta())) {
+					throw new BusinessException(
+							MessagesBussinesKey.KEY_CONFIGURACION_CUENTA_PRODUCTO_EMPRESA_EXISTENTE.value);
 				}
 			}
+		}
 
-			em.createNativeQuery(SQLConstant.INSERT_CUENTAS_PRODUCTOS)
-					.setParameter("idEmpresa", cuentaProducto.getIdEmpresa())
-					.setParameter("idProducto", cuentaProducto.getIdProducto())
-					.setParameter("idCuenta", cuentaProducto.getIdCuenta())
-					.setParameter("codCuenta", cuentaProducto.getCodCuenta().trim()).executeUpdate();
+		em.createNativeQuery(SQLConstant.INSERT_CUENTAS_PRODUCTOS)
+				.setParameter("idEmpresa", cuentaProducto.getIdEmpresa())
+				.setParameter("idProducto", cuentaProducto.getIdProducto())
+				.setParameter("idCuenta", cuentaProducto.getIdCuenta())
+				.setParameter("codCuenta", cuentaProducto.getCodCuenta().trim()).executeUpdate();
 
 	}
 
