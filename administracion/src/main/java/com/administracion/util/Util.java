@@ -1,10 +1,16 @@
 package com.administracion.util;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
+import javax.persistence.Query;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.administracion.enums.Numero;
 import com.administracion.dto.transversal.MessageResponseDTO;
+import com.administracion.enums.Numero;
 
 /**
  * Clase que proporciona metodos utilitarios
@@ -50,5 +56,33 @@ public class Util {
 	 */
 	public static String getValue(Object[] data, Integer index) {
 		return data[index] != null ? data[index].toString() : null;
+	}
+
+	/**
+	 * Metodo que permite configurar los parameters a un query a partir de una lista
+	 * @param query, consulta a configurar los parametros
+	 * @param parametros, lista de valores de parametros a configurar
+	 */
+	public static void setParameters(Query query, ArrayList<Object> parametros) {
+		if (parametros != null && !parametros.isEmpty()) {
+			int index = Numero.UNO.valueI;
+			for(Object parametro : parametros) {
+				query.setParameter(index, parametro);
+				index++;
+			}
+		}
+	}
+
+	/**
+	 * Permite limpiar la hora minuto segundo milisegundo de una fecha
+	 */
+	public static Date removeTime(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
 	}
 }
