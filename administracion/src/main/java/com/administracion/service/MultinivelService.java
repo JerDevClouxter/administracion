@@ -267,14 +267,18 @@ public class MultinivelService {
 	
 	private void existeComisionAsociadaProdPadre(List<EmpresasProductosDTO> listaProductosEmprePadre)
 			throws BusinessException {
+
 		if (listaProductosEmprePadre != null && !listaProductosEmprePadre.isEmpty()) {
+			List<EmpresasProductosDTO> listaProdTemporal = new ArrayList<EmpresasProductosDTO>();
 			for (EmpresasProductosDTO empresasProductosDTO : listaProductosEmprePadre) {
 				List<EmpresasProductosComisionesDTO> existeComision = consultarComisionProdEmpresa(
 						empresasProductosDTO.getIdEmpresa(), empresasProductosDTO.getIdProducto(), false);
 				if (existeComision.isEmpty()) {
-					listaProductosEmprePadre.remove(empresasProductosDTO);
+					listaProdTemporal.add(empresasProductosDTO);
 				}
 			}
+			listaProductosEmprePadre.removeAll(listaProdTemporal);
+
 		}
 	}
 
