@@ -269,7 +269,7 @@ public class MultinivelService {
 			throws BusinessException {
 
 		if (listaProductosEmprePadre != null && !listaProductosEmprePadre.isEmpty()) {
-			List<EmpresasProductosDTO> listaProdTemporal = new ArrayList<EmpresasProductosDTO>();
+			List<EmpresasProductosDTO> listaProdTemporal = new ArrayList<>();
 			for (EmpresasProductosDTO empresasProductosDTO : listaProductosEmprePadre) {
 				List<EmpresasProductosComisionesDTO> existeComision = consultarComisionProdEmpresa(
 						empresasProductosDTO.getIdEmpresa(), empresasProductosDTO.getIdProducto(), false);
@@ -277,8 +277,9 @@ public class MultinivelService {
 					listaProdTemporal.add(empresasProductosDTO);
 				}
 			}
-			listaProductosEmprePadre.removeAll(listaProdTemporal);
-
+			if (!listaProdTemporal.isEmpty()) {
+				listaProductosEmprePadre.removeAll(listaProdTemporal);
+			}
 		}
 	}
 
