@@ -28,4 +28,7 @@ public class SolicitudCalendarioSorteoDTO implements Serializable {
 
 	/** Nombre de la loteria del sorteo **/
 	private String loteria;
+
+	/** Es el detalle de la solicitud calendario sorteo **/
+	private DetalleSolicitudCalendarioSorteoDTO detalle;
 }
