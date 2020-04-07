@@ -1,6 +1,7 @@
 package com.administracion.service;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,14 +12,22 @@ import javax.persistence.Query;
 
 import org.springframework.stereotype.Service;
 
+import com.administracion.constant.Constants;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
+import com.administracion.constant.TiposAutorizacionesConstant;
+import com.administracion.dto.autorizaciones.AutorizacionCancelarSerieSorteoDTO;
+import com.administracion.dto.autorizaciones.AutorizacionCrearEditarSerieDTO;
+import com.administracion.dto.autorizaciones.AutorizacionEditarSorteoDTO;
+import com.administracion.dto.solicitudes.DetalleSolicitudCalendarioSorteoDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.dto.solicitudes.SolicitudCalendarioSorteoDTO;
 import com.administracion.dto.transversal.PaginadorDTO;
 import com.administracion.dto.transversal.PaginadorResponseDTO;
+import com.administracion.enums.EstadoEnum;
 import com.administracion.enums.Numero;
 import com.administracion.util.Util;
+import com.google.gson.Gson;
 
 /**
  * Service que contiene los procesos de negocio para la administracion de las solicitudes
@@ -96,6 +105,125 @@ public class SolicitudesService {
 				solicitud.setSolicitante(Util.getValue(programacion, Numero.CUATRO.valueI));
 				solicitud.setLoteria(Util.getValue(programacion, Numero.CINCO.valueI));
 				response.agregarRegistro(solicitud);
+			}
+		}
+		return response;
+	}
+
+	/**
+	 * Servicio que permite consultar el detalle de la solicitud para calendario sorteos
+	 *
+	 * @param solicitud, DTO que contiene los datos de la solicitud
+	 * @return DTO con los datos del detalle de la solicitud para calendario sorteos
+	 */
+	public DetalleSolicitudCalendarioSorteoDTO getDetalleSolicitudCalendarioSorteos(
+			SolicitudCalendarioSorteoDTO solicitud) throws Exception {
+
+		// se utiliza para encapsular la respuesta de esta peticion
+		DetalleSolicitudCalendarioSorteoDTO response = new DetalleSolicitudCalendarioSorteoDTO();
+
+		// los datos de la solicitud es requerido
+		if (solicitud != null) {
+
+			// se necesita el identificador de la solicitud para consultar sus detalles
+			Long idSolicitud = solicitud.getIdSolicitud();
+			if (idSolicitud != null) {
+				response.setIdSolicitud(idSolicitud);
+
+				// se consulta los detalles de esta solicitud
+				Query q = this.em.createNativeQuery(SQLConstant.SELECT_DETALLE_SOLICITUD_CALENDARIO_SORTEO);
+				q.setParameter(Numero.UNO.valueI, idSolicitud);
+				List<Object[]> detalles = q.getResultList();
+
+				// se valida si esta solicitud tiene detalles
+				if (detalles != null && !detalles.isEmpty()) {
+
+					// se recorre cada detalle de esta solicitud
+					String campo;
+					String json = null;
+					String horaSorteo = null;
+					Timestamp fechaSorteo = null;
+					Integer idTipoSolicitud = null;
+					for (Object[] detalle : detalles) {
+
+						// se obtiene el tipo de solicitud y el motivo solamente del primer registro
+						if (idTipoSolicitud == null) {
+							idTipoSolicitud = Integer.valueOf(Util.getValue(detalle, Numero.ZERO.valueI));
+							response.setIdTipoSolicitud(idTipoSolicitud);
+							response.setMotivoSolicitud(Util.getValue(detalle, Numero.UNO.valueI));
+						}
+
+						// se obtiene el valor del campo(AUTORIZACIONES_DETALLES.CAMPO)
+						campo = Util.getValue(detalle, Numero.DOS.valueI);
+
+						// se verifica a que campo se va hacer la transaccion de esta solicitud
+						if (Constants.ID_SORTEO.equals(campo) || Constants.ID_SORTEO_DETALLE.equals(campo)) {
+
+							// se configua el ID de la serie o el sorteo y el campo(ID_SORTEO,ID_SORTEO_DETALLE)
+							response.setIdSerieDetalle(Long.valueOf(Util.getValue(detalle, Numero.TRES.valueI)));
+							response.setCampo(campo);
+
+							// si el campo es ID_SORTEO_DETALLE se obtiene su hora y fecha del sorteo
+							if (Constants.ID_SORTEO_DETALLE.equals(campo)) {
+								horaSorteo = Util.getValue(detalle, Numero.CUATRO.valueI);
+								fechaSorteo = (Timestamp) detalle[Numero.CINCO.valueI];
+							}
+						} else if (Constants.REQUEST_JSON.equals(campo)) {
+							json = Util.getValue(detalle, Numero.TRES.valueI);
+						}
+					}
+					// se utiliza para obtener el DTO a partir de un JSON
+					Gson apiGson = new Gson();
+
+					// si el tipo de solicitud es de CREACION de sorteos
+					if (TiposAutorizacionesConstant.CREACION_SORTEOS.equals(idTipoSolicitud)) {
+						response.setDespues(apiGson.fromJson(json, AutorizacionCrearEditarSerieDTO.class));
+					}
+
+					// si el tipo de solicitud es de CANCELACION de toda la serie o solamente del sorteo
+					else if (TiposAutorizacionesConstant.CANCELAR_SORTEOS.equals(idTipoSolicitud)) {
+
+						// datos despues de autorizar esta solicitud
+						response.setDespues(apiGson.fromJson(json, AutorizacionCancelarSerieSorteoDTO.class));
+
+						// datos antes de autorizar esta solicitud
+						AutorizacionCancelarSerieSorteoDTO antes = apiGson.fromJson(json, AutorizacionCancelarSerieSorteoDTO.class);
+						antes.setEstado(EstadoEnum.ACTIVO.name());
+						response.setAntes(antes);
+					}
+
+					// si el tipo de solicitud es de MODIFICACION de toda la serie o solamente del sorteo
+					else if (TiposAutorizacionesConstant.MODIFICAR_SORTEOS.equals(idTipoSolicitud)) {
+
+						// si es modificacion de toda la serie
+						if (Constants.ID_SORTEO.equals(response.getCampo())) {
+
+							// datos despues de autorizar esta solicitud
+							response.setDespues(apiGson.fromJson(json, AutorizacionCrearEditarSerieDTO.class));
+
+							// datos antes de autorizar esta solicitud
+							Query query = this.em.createNativeQuery(SQLConstant.SELECT_ULTIMA_MOIFICACION_CALENDARIO_SORTEO);
+							query.setParameter(Numero.UNO.valueI, response.getIdSerieDetalle().toString());
+							List<String> resultJson = query.getResultList();
+							if (resultJson != null && !resultJson.isEmpty()) {
+								response.setAntes(apiGson.fromJson(resultJson.get(Numero.ZERO.valueI), AutorizacionCrearEditarSerieDTO.class));
+							}
+						}
+
+						// si es modificacion de solo un sorteo
+						else if (Constants.ID_SORTEO_DETALLE.equals(response.getCampo())) {
+
+							// datos despues de autorizar esta solicitud
+							response.setDespues(apiGson.fromJson(json, AutorizacionEditarSorteoDTO.class));
+
+							// datos antes de autorizar esta solicitud
+							AutorizacionEditarSorteoDTO antes = apiGson.fromJson(json, AutorizacionEditarSorteoDTO.class);
+							antes.setFechaSorteo(fechaSorteo != null ? new Date(fechaSorteo.getTime()) : null);
+							antes.setHoraSorteo(horaSorteo);
+							response.setAntes(antes);
+						}
+					}
+				}
 			}
 		}
 		return response;

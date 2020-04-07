@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
+import com.administracion.dto.solicitudes.SolicitudCalendarioSorteoDTO;
 import com.administracion.service.SolicitudesService;
 import com.administracion.util.Util;
 
@@ -48,6 +49,29 @@ public class SolicitudesResource {
 			return Util.getResponseSuccessful(this.service.getSolicitudesCalendarioSorteos(filtro));
 		} catch (Exception e) {
 			return Util.getResponseError(SolicitudesResource.class.getSimpleName() + ".getSolicitudesCalendarioSorteos ", e.getMessage());
+		}
+	}
+
+	/**
+	 * Servicio que permite consultar el detalle de la solicitud para calendario sorteos
+	 *
+	 * @param solicitud, DTO que contiene los datos de la solicitud
+	 * @return DTO con los datos del detalle de la solicitud para calendario sorteos
+	 */
+	@PostMapping(path = "/getDetalleSolicitudCalendarioSorteos",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Consultar detalle solicitud calendario sorteo", notes = "Obtiene el detalle de la solicitud para los calendarios sorteos")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> getDetalleSolicitudCalendarioSorteos(@RequestBody SolicitudCalendarioSorteoDTO solicitud) {
+		try {
+			return Util.getResponseSuccessful(this.service.getDetalleSolicitudCalendarioSorteos(solicitud));
+		} catch (Exception e) {
+			return Util.getResponseError(SolicitudesResource.class.getSimpleName() + ".getDetalleSolicitudCalendarioSorteos ", e.getMessage());
 		}
 	}
 }
