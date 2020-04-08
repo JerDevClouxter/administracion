@@ -11,5 +11,15 @@ public class PersonasDTO implements Serializable {
 	private Long idPersona;
 	private String idTipoDocumento;
 	private String numeroDocumento;
+	private String primerNombre;
+	private String segundoNombre;
+	private String primerApellido;
+	private String segundoApellido;
+	private String direccion;
+	private String telefono;
+	private String celular;
+	private String correoElectronico;
+	private Long estrato;
+	
 
 }
