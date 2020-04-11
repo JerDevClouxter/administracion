@@ -14,7 +14,7 @@ public class DetalleSolicitudCalendarioSorteoDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/** Identificador del usuario quien autoriza la solicitud **/
-	private Long usuarioAutoriza;
+	private Long idUsuarioAutoriza;
 
 	/** Identificador de la solicitud **/
 	private Long idSolicitud;

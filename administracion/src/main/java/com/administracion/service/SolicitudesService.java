@@ -1,7 +1,9 @@
 package com.administracion.service;
 
 import java.math.BigInteger;
+import java.sql.Connection;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,8 +13,10 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.constant.Constants;
+import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
 import com.administracion.constant.TiposAutorizacionesConstant;
@@ -26,6 +30,9 @@ import com.administracion.dto.transversal.PaginadorDTO;
 import com.administracion.dto.transversal.PaginadorResponseDTO;
 import com.administracion.enums.EstadoEnum;
 import com.administracion.enums.Numero;
+import com.administracion.jdbc.UtilJDBC;
+import com.administracion.jdbc.ValueSQL;
+import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
 import com.google.gson.Gson;
 
@@ -228,6 +235,64 @@ public class SolicitudesService {
 			}
 		}
 		return response;
+	}
+
+	/**
+	 * Servicio que permite rechazar una solicitud de calendario sorteos
+	 * @param solicitud, DTO que contiene los datos de la solicitud a rechazar
+	 */
+	@Transactional
+	public void rechazarSolicitudCalendarioSorteos(DetalleSolicitudCalendarioSorteoDTO solicitud) throws Exception {
+
+		// los datos de la solicitud son requerido
+		if (solicitud == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// el usuario quien rechaza y el id de la solicitud son requeridos
+		Long idUsuarioAutoriza = solicitud.getIdUsuarioAutoriza();
+		Long idSolicitud = solicitud.getIdSolicitud();
+		if (idUsuarioAutoriza == null || idSolicitud == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// para el proceso de creacion el id del sorteo es requerido
+		Long idSerieDetalle = solicitud.getIdSerieDetalle();
+		if (solicitud.isEsSolicitudCreacion() && idSerieDetalle == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			// se cambia el estado de la solicitud a RECHAZADO
+			ValueSQL estadoRechazado = ValueSQL.get(EstadoEnum.RECHAZADO.name(), Types.VARCHAR);
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_AUTORIZACION,
+					estadoRechazado,
+					ValueSQL.get(idUsuarioAutoriza, Types.BIGINT),
+					ValueSQL.get(idSolicitud, Types.BIGINT));
+
+			// para el proceso de creacion se cambia el estado del sorteo y sus detalles a RECHAZADO
+			if (solicitud.isEsSolicitudCreacion()) {
+
+				// update para la tabla sorteo
+				utilJDBC.insertUpdate(connection,
+						SQLConstant.UPDATE_ESTADO_CALENDARIO_SORTEO,
+						estadoRechazado,
+						ValueSQL.get(idSerieDetalle, Types.BIGINT));
+
+				// update para los detalles del sorteo
+				utilJDBC.insertUpdate(connection,
+						SQLConstant.UPDATE_ESTADO_DETALLE_CALENDARIO_SORTEO,
+						estadoRechazado,
+						ValueSQL.get(idSerieDetalle, Types.BIGINT));
+			}
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
 	}
 
 	/**

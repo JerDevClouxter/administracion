@@ -102,4 +102,18 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 		+ "WHERE A.ID_ESTADO='" + EstadoEnum.AUTORIZADO.name() + "' "
 		+ "AND A.ID_TIPO_AUTORIZACION IN(" + TiposAutorizacionesConstant.CREACION_SORTEOS + "," + TiposAutorizacionesConstant.MODIFICAR_SORTEOS + ")"
 		+ "AND AD.CAMPO='" + Constants.ID_SORTEO + "' AND AD.VALOR=? ORDER BY A.ID_AUTORIZACION DESC LIMIT 1";
+
+	/** UPDATE para cambiar el estado de una autorizacion */
+	public static final String UPDATE_ESTADO_AUTORIZACION =
+		"UPDATE AUTORIZACIONES "
+			+ "SET ID_ESTADO=?,"
+			+ "ID_USUARIO_AUTORIZADOR=?,"
+			+ "FECHA_AUTORIZACION=CURRENT_DATE "
+		+ "WHERE ID_AUTORIZACION=?";
+
+	/** UPDATE para cambiar el estado del calendario sorteo */
+	public static final String UPDATE_ESTADO_CALENDARIO_SORTEO = "UPDATE SORTEOS SET ID_ESTADO=? WHERE ID_SORTEO=?";
+
+	/** UPDATE para cambiar el estado detalle del calendario sorteo */
+	public static final String UPDATE_ESTADO_DETALLE_CALENDARIO_SORTEO = "UPDATE SORTEOS_DETALLES SET ID_ESTADO=? WHERE ID_SORTEO=?";
 }

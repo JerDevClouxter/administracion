@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.administracion.dto.solicitudes.DetalleSolicitudCalendarioSorteoDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.dto.solicitudes.SolicitudCalendarioSorteoDTO;
 import com.administracion.service.SolicitudesService;
+import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
 
 import io.swagger.annotations.ApiOperation;
@@ -72,6 +74,33 @@ public class SolicitudesResource {
 			return Util.getResponseSuccessful(this.service.getDetalleSolicitudCalendarioSorteos(solicitud));
 		} catch (Exception e) {
 			return Util.getResponseError(SolicitudesResource.class.getSimpleName() + ".getDetalleSolicitudCalendarioSorteos ", e.getMessage());
+		}
+	}
+
+	/**
+	 * Servicio que permite rechazar una solicitud de calendario sorteos
+	 * @param solicitud, DTO que contiene los datos de la solicitud a rechazar
+	 */
+	@PostMapping(path = "/rechazarSolicitudCalendarioSorteos",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Rechazar solicitud calendario sorteos", notes = "Permite rechazar una solicitud de calendario sorteos")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> rechazarSolicitudCalendarioSorteos(@RequestBody DetalleSolicitudCalendarioSorteoDTO solicitud) {
+		try {
+			// se procede a rechazar la solicitud
+			this.service.rechazarSolicitudCalendarioSorteos(solicitud);
+
+			// si llega a este punto es porque el proceso se ejecuto sin problemas
+			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
+		} catch (Exception e) {
+			return Util.getResponseError(SolicitudesResource.class.getSimpleName() + ".rechazarSolicitudCalendarioSorteos ", e.getMessage());
 		}
 	}
 }
