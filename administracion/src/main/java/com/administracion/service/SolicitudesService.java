@@ -149,7 +149,9 @@ public class SolicitudesService {
 						// se obtiene el tipo de solicitud y el motivo solamente del primer registro
 						if (idTipoSolicitud == null) {
 							idTipoSolicitud = Integer.valueOf(Util.getValue(detalle, Numero.ZERO.valueI));
-							response.setIdTipoSolicitud(idTipoSolicitud);
+							response.setEsSolicitudCreacion(TiposAutorizacionesConstant.CREACION_SORTEOS.equals(idTipoSolicitud));
+							response.setEsSolicitudModificacion(TiposAutorizacionesConstant.MODIFICAR_SORTEOS.equals(idTipoSolicitud));
+							response.setEsSolicitudCancelacion(TiposAutorizacionesConstant.CANCELAR_SORTEOS.equals(idTipoSolicitud));
 							response.setMotivoSolicitud(Util.getValue(detalle, Numero.UNO.valueI));
 						}
 
@@ -161,7 +163,7 @@ public class SolicitudesService {
 
 							// se configua el ID de la serie o el sorteo y el campo(ID_SORTEO,ID_SORTEO_DETALLE)
 							response.setIdSerieDetalle(Long.valueOf(Util.getValue(detalle, Numero.TRES.valueI)));
-							response.setCampo(campo);
+							response.setEsSolicitudTodaLaSerie(Constants.ID_SORTEO.equals(campo));
 
 							// si el campo es ID_SORTEO_DETALLE se obtiene su hora y fecha del sorteo
 							if (Constants.ID_SORTEO_DETALLE.equals(campo)) {
@@ -176,12 +178,12 @@ public class SolicitudesService {
 					Gson apiGson = new Gson();
 
 					// si el tipo de solicitud es de CREACION de sorteos
-					if (TiposAutorizacionesConstant.CREACION_SORTEOS.equals(idTipoSolicitud)) {
+					if (response.isEsSolicitudCreacion()) {
 						response.setDespues(apiGson.fromJson(json, AutorizacionCrearEditarSerieDTO.class));
 					}
 
 					// si el tipo de solicitud es de CANCELACION de toda la serie o solamente del sorteo
-					else if (TiposAutorizacionesConstant.CANCELAR_SORTEOS.equals(idTipoSolicitud)) {
+					else if (response.isEsSolicitudCancelacion()) {
 
 						// datos despues de autorizar esta solicitud
 						response.setDespues(apiGson.fromJson(json, AutorizacionCancelarSerieSorteoDTO.class));
@@ -193,10 +195,10 @@ public class SolicitudesService {
 					}
 
 					// si el tipo de solicitud es de MODIFICACION de toda la serie o solamente del sorteo
-					else if (TiposAutorizacionesConstant.MODIFICAR_SORTEOS.equals(idTipoSolicitud)) {
+					else if (response.isEsSolicitudModificacion()) {
 
 						// si es modificacion de toda la serie
-						if (Constants.ID_SORTEO.equals(response.getCampo())) {
+						if (response.isEsSolicitudTodaLaSerie()) {
 
 							// datos despues de autorizar esta solicitud
 							response.setDespues(apiGson.fromJson(json, AutorizacionCrearEditarSerieDTO.class));
@@ -211,8 +213,7 @@ public class SolicitudesService {
 						}
 
 						// si es modificacion de solo un sorteo
-						else if (Constants.ID_SORTEO_DETALLE.equals(response.getCampo())) {
-
+						else {
 							// datos despues de autorizar esta solicitud
 							response.setDespues(apiGson.fromJson(json, AutorizacionEditarSorteoDTO.class));
 

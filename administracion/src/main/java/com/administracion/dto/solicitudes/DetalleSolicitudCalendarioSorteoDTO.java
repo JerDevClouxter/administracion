@@ -19,21 +19,27 @@ public class DetalleSolicitudCalendarioSorteoDTO implements Serializable {
 	/** Identificador de la solicitud **/
 	private Long idSolicitud;
 
-	/** Identificador del tipo de solicitud **/
-	private Integer idTipoSolicitud;
-
 	/** Motivo de la solicitud **/
 	private String motivoSolicitud;
 
 	/** Identificador de la serie o del detalle sorteo **/
 	private Long idSerieDetalle;
 
-	/** Identifica si el idSerieDetalle es para el campo ID_SORTEO o ID_SORTEO_DETALLE **/
-	private String campo;
+	/** Identifica si la solicitud es para toda la serie o solamente para un sorteo **/
+	private boolean esSolicitudTodaLaSerie;
 
-	/** Contiene los datos original de la serie o el detalle**/
+	/** Identifica si la solicitud es para CREACION **/
+	private boolean esSolicitudCreacion;
+
+	/** Identifica si la solicitud es para MODIFICACION **/
+	private boolean esSolicitudModificacion;
+
+	/** Identifica si la solicitud es para CANCELACION **/
+	private boolean esSolicitudCancelacion;
+
+	/** Contiene los datos original de la serie o el detalle **/
 	private AutorizacionDTO antes;
 
-	/** Contiene los datos a modificar, cancelar o crear del sorteo**/
+	/** Contiene los datos a modificar, cancelar o crear del sorteo **/
 	private AutorizacionDTO despues;
 }

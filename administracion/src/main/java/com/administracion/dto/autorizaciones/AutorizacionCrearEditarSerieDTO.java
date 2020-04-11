@@ -23,20 +23,23 @@ public class AutorizacionCrearEditarSerieDTO extends AutorizacionDTO {
 	/**
 	 * Metodo que permite agregar un dia habil que juega la serie
 	 */
-	public void agregarDiaHabil(Integer dia, String hora) {
+	public void agregarDiaHabil(Integer dia, String nombreDia, String hora) {
 		if (this.diasHabilesQueJuegaSerie == null) {
 			this.diasHabilesQueJuegaSerie = new ArrayList<>();
 		}
-		this.diasHabilesQueJuegaSerie.add(new AutorizacionDiaSorteoDTO(dia, hora));
+		this.diasHabilesQueJuegaSerie.add(new AutorizacionDiaSorteoDTO(dia, nombreDia, hora));
 	}
 
 	/**
 	 * Metodo que permite agregar un dia festivo que juega la serie
 	 */
-	public void agregarDiaFestivo(Integer dia, String hora, String fecha) {
+	public void agregarDiaFestivo(
+			Integer dia, String nombreDia,
+			String hora, String fecha,
+			String descripcionFestivo) {
 		if (this.diasFestivosQueJuegaSerie == null) {
 			this.diasFestivosQueJuegaSerie = new ArrayList<>();
 		}
-		this.diasFestivosQueJuegaSerie.add(new AutorizacionDiaSorteoDTO(dia, hora, fecha));
+		this.diasFestivosQueJuegaSerie.add(new AutorizacionDiaSorteoDTO(dia, nombreDia, hora, fecha, descripcionFestivo));
 	}
 }
