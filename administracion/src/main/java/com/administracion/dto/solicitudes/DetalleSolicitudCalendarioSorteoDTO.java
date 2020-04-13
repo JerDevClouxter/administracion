@@ -42,4 +42,7 @@ public class DetalleSolicitudCalendarioSorteoDTO implements Serializable {
 
 	/** Contiene los datos a modificar, cancelar o crear del sorteo **/
 	private AutorizacionDTO despues;
+
+	/** Contiene los datos a modificar, cancelar o crear del sorteo formato JSON **/
+	private String despuesJson;
 }

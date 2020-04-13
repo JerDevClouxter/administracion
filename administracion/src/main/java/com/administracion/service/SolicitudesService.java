@@ -208,6 +208,7 @@ public class SolicitudesService {
 
 					// si el tipo de solicitud es de MODIFICACION de toda la serie o solamente del sorteo
 					else if (response.isEsSolicitudModificacion()) {
+						response.setDespuesJson(json);
 
 						// si es modificacion de toda la serie
 						if (response.isEsSolicitudTodaLaSerie()) {
@@ -448,8 +449,9 @@ public class SolicitudesService {
 		// si la modificacion es para toda la serie
 		if (solicitud.isEsSolicitudTodaLaSerie()) {
 
-			// se cancela toda la serie con sus detalles
-			setEstadoTodoCalendarioSorteo(connection,
+			// se cancela todos los detalles del sorteo
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_DETALLES_CALENDARIO_SORTEO,
 					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
 					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
 
@@ -458,7 +460,9 @@ public class SolicitudesService {
 		}
 		// si la modificacion es para solo el sorteo
 		else {
-			AutorizacionEditarSorteoDTO despues = (AutorizacionEditarSorteoDTO) solicitud.getDespues();
+			AutorizacionEditarSorteoDTO despues = new Gson().fromJson(
+					solicitud.getDespuesJson(),
+					AutorizacionEditarSorteoDTO.class);
 			utilJDBC.insertUpdate(connection,
 					SQLConstant.UPDATE_FECHA_HORA_SORTEO,
 					ValueSQL.get(despues.getFechaSorteo(), Types.DATE),
@@ -474,7 +478,9 @@ public class SolicitudesService {
 
 		// se obtiene los datos de la nueva serie
 		UtilJDBC utilJDBC = UtilJDBC.getInstance();
-		AutorizacionCrearEditarSerieDTO despues = (AutorizacionCrearEditarSerieDTO) solicitud.getDespues();
+		AutorizacionCrearEditarSerieDTO despues = new Gson().fromJson(
+				solicitud.getDespuesJson(),
+				AutorizacionCrearEditarSerieDTO.class);
 
 		// se utilizan para las insercciones de SORTEO y sus detalles
 		SimpleDateFormat format = new SimpleDateFormat(Constants.FECHA_FORMATO);
@@ -483,14 +489,9 @@ public class SolicitudesService {
 		// se procede a crear el registro en la tabla padre SORTEOS
 		Date fechaInicio = format.parse(despues.getFechaInicio());
 		Date fechaFinal = format.parse(despues.getFechaFinal());
-		Long idSorteo = utilJDBC.insertReturningID(con,
-				SQLConstant.INSERT_SORTEOS,
-				ValueSQL.get(fechaInicio, Types.DATE),
-				ValueSQL.get(fechaFinal, Types.DATE),
-				valueEstadoActivo);
 
 		// se utiliza para la creacion del detalle de los sorteos
-		ValueSQL valueIdSorteo = ValueSQL.get(idSorteo, Types.BIGINT);
+		ValueSQL valueIdSorteo = ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT);
 		ValueSQL valueIdLoteria = ValueSQL.get(despues.getIdLoteria(), Types.INTEGER);
 
 		// se obtiene los dias seleccionados
