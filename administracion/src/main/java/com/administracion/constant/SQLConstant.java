@@ -114,6 +114,18 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 	/** UPDATE para cambiar el estado del calendario sorteo */
 	public static final String UPDATE_ESTADO_CALENDARIO_SORTEO = "UPDATE SORTEOS SET ID_ESTADO=? WHERE ID_SORTEO=?";
 
-	/** UPDATE para cambiar el estado detalle del calendario sorteo */
-	public static final String UPDATE_ESTADO_DETALLE_CALENDARIO_SORTEO = "UPDATE SORTEOS_DETALLES SET ID_ESTADO=? WHERE ID_SORTEO=?";
+	/** UPDATE para cambiar el estado de todos los detalles del calendario sorteo */
+	public static final String UPDATE_ESTADO_DETALLES_CALENDARIO_SORTEO = "UPDATE SORTEOS_DETALLES SET ID_ESTADO=? WHERE ID_SORTEO=?";
+
+	/** UPDATE para cambiar el estado de un detalle de la serie */
+	public static final String UPDATE_ESTADO_SORTEO = "UPDATE SORTEOS_DETALLES SET ID_ESTADO=? WHERE ID_SORTEO_DETALLE=?";
+
+	/** UPDATE para cambiar la FECHA Y HORA del sorteo */
+	public static final String UPDATE_FECHA_HORA_SORTEO = "UPDATE SORTEOS_DETALLES SET FECHA_SORTEO=?,HORA_SORTEO=? WHERE ID_SORTEO_DETALLE=?";
+
+	/** Insert para la tabla SORTEOS */
+	public static final String INSERT_SORTEOS = "INSERT INTO SORTEOS(FECHA_INICIO,FECHA_FINAL,ID_ESTADO)VALUES(?,?,?)RETURNING ID_SORTEO";
+
+	/** Insert para la tabla SORTEOS_DETALLES */
+	public static final String INSERT_DETALLES_SORTEOS = "INSERT INTO SORTEOS_DETALLES(ID_SORTEO,FECHA_SORTEO,HORA_SORTEO,ID_LOTERIA,ID_ESTADO)VALUES(?,?,?,?,?)";
 }

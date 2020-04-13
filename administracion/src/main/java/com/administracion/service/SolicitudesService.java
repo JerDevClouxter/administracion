@@ -4,8 +4,11 @@ import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -22,6 +25,7 @@ import com.administracion.constant.SQLTransversal;
 import com.administracion.constant.TiposAutorizacionesConstant;
 import com.administracion.dto.autorizaciones.AutorizacionCancelarSerieSorteoDTO;
 import com.administracion.dto.autorizaciones.AutorizacionCrearEditarSerieDTO;
+import com.administracion.dto.autorizaciones.AutorizacionDiaSorteoDTO;
 import com.administracion.dto.autorizaciones.AutorizacionEditarSorteoDTO;
 import com.administracion.dto.solicitudes.DetalleSolicitudCalendarioSorteoDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
@@ -33,6 +37,7 @@ import com.administracion.enums.Numero;
 import com.administracion.jdbc.UtilJDBC;
 import com.administracion.jdbc.ValueSQL;
 import com.administracion.util.BusinessException;
+import com.administracion.util.DateIteratorUtil;
 import com.administracion.util.Util;
 import com.google.gson.Gson;
 
@@ -274,20 +279,55 @@ public class SolicitudesService {
 					ValueSQL.get(idUsuarioAutoriza, Types.BIGINT),
 					ValueSQL.get(idSolicitud, Types.BIGINT));
 
-			// para el proceso de creacion se cambia el estado del sorteo y sus detalles a RECHAZADO
+			// para el proceso de CREACION se cambia el estado del sorteo y sus detalles a RECHAZADO
 			if (solicitud.isEsSolicitudCreacion()) {
+				setEstadoTodoCalendarioSorteo(connection, estadoRechazado, ValueSQL.get(idSerieDetalle, Types.BIGINT));
+			}
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
+	}
 
-				// update para la tabla sorteo
-				utilJDBC.insertUpdate(connection,
-						SQLConstant.UPDATE_ESTADO_CALENDARIO_SORTEO,
-						estadoRechazado,
-						ValueSQL.get(idSerieDetalle, Types.BIGINT));
+	/**
+	 * Servicio que permite autorizar una solicitud de calendario sorteos
+	 * 
+	 * @param solicitud, DTO que contiene los datos de la solicitud autorizar
+	 */
+	@Transactional
+	public void autorizarSolicitudCalendarioSorteos(DetalleSolicitudCalendarioSorteoDTO solicitud) throws Exception {
 
-				// update para los detalles del sorteo
-				utilJDBC.insertUpdate(connection,
-						SQLConstant.UPDATE_ESTADO_DETALLE_CALENDARIO_SORTEO,
-						estadoRechazado,
-						ValueSQL.get(idSerieDetalle, Types.BIGINT));
+		// los datos de la solicitud son requerido
+		if (solicitud == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// usuario quien rechaza, id de la solicitud y el id de la serie, sorteo son requeridos
+		Long idUsuarioAutoriza = solicitud.getIdUsuarioAutoriza();
+		Long idSolicitud = solicitud.getIdSolicitud();
+		Long idSerieDetalle = solicitud.getIdSerieDetalle();
+		if (idUsuarioAutoriza == null || idSolicitud == null || idSerieDetalle == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			// se cambia el estado de la solicitud AUTORIZADO
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_AUTORIZACION,
+					ValueSQL.get(EstadoEnum.AUTORIZADO.name(), Types.VARCHAR),
+					ValueSQL.get(idUsuarioAutoriza, Types.BIGINT),
+					ValueSQL.get(idSolicitud, Types.BIGINT));
+
+			// se valida el tipo de solicitud (CREACION, EDICION, CANCELACION)
+			if (solicitud.isEsSolicitudCreacion()) {
+				procesarSolicitudCreacionSorteos(solicitud, connection);
+			} else if (solicitud.isEsSolicitudModificacion()) {
+				procesarSolicitudModificacionSorteos(solicitud, connection);
+			} else if (solicitud.isEsSolicitudCancelacion()) {
+				procesarSolicitudCancelacionSorteos(solicitud, connection);
 			}
 		} catch (Exception e) {
 			connection.rollback();
@@ -321,5 +361,210 @@ public class SolicitudesService {
 			from.append(SQLConstant.FILTER_SOLICITUDES_CALENDARIO_FECHA_FINAL);
 			parametros.add(Util.removeTime(fechaFinal));
 		}
+	}
+
+	/**
+	 * Metodo que permite cambiar el estado de todo un calendario sorteo
+	 */
+	private void setEstadoTodoCalendarioSorteo(
+			Connection connection,
+			ValueSQL valueSQLEstado,
+			ValueSQL valueSQLIdSorteo) throws Exception {
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+
+		// update estado para la tabla SORTEOS
+		utilJDBC.insertUpdate(connection,
+				SQLConstant.UPDATE_ESTADO_CALENDARIO_SORTEO,
+				valueSQLEstado,
+				valueSQLIdSorteo);
+
+		// update estado para la tabla SORTEOS_DETALLES
+		utilJDBC.insertUpdate(connection,
+				SQLConstant.UPDATE_ESTADO_DETALLES_CALENDARIO_SORTEO,
+				valueSQLEstado,
+				valueSQLIdSorteo);
+	}
+
+	/**
+	 * Metodo que permite configurar la hora standar donde
+	 * debe tener su dos ultimos segundos
+	 *
+	 * @param hora, es la hora a validar
+	 * @return, nueva valor con la hora correcta
+	 */
+	private String setHoraEstandar(String hora) {
+		int length = hora.length();
+		if (length == Numero.CINCO.valueI || length == Numero.CUATRO.valueI) {
+			hora += ":00";
+		}
+		return hora;
+	}
+
+	/**
+	 * Metodo que permite procesar la solicitud de CREACION de sorteos
+	 */
+	private void procesarSolicitudCreacionSorteos(
+			DetalleSolicitudCalendarioSorteoDTO solicitud,
+			Connection connection) throws Exception {
+
+		// para el proceso de CREACION se ACTIVA toda la serie con sus detalles
+		setEstadoTodoCalendarioSorteo(connection,
+				ValueSQL.get(EstadoEnum.ACTIVO.name(), Types.VARCHAR),
+				ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+	}
+
+	/**
+	 * Metodo que permite procesar la solicitud de CANCELACION de sorteos
+	 */
+	private void procesarSolicitudCancelacionSorteos(
+			DetalleSolicitudCalendarioSorteoDTO solicitud,
+			Connection connection) throws Exception {
+
+		// si la cancelacion es para toda la serie
+		if (solicitud.isEsSolicitudTodaLaSerie()) {
+			setEstadoTodoCalendarioSorteo(connection,
+					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+		}
+		// si la cancelacion es para solo el sorteo
+		else {
+			UtilJDBC.getInstance().insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_SORTEO,
+					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+		}
+	}
+
+	/**
+	 * Metodo que permite procesar la solicitud de MODIFICACION de sorteos
+	 */
+	private void procesarSolicitudModificacionSorteos(
+			DetalleSolicitudCalendarioSorteoDTO solicitud,
+			Connection connection) throws Exception {
+
+		// instacia de las utilidades de JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+
+		// si la modificacion es para toda la serie
+		if (solicitud.isEsSolicitudTodaLaSerie()) {
+
+			// se cancela toda la serie con sus detalles
+			setEstadoTodoCalendarioSorteo(connection,
+					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+
+			// se procede a crear el calendario sorteo activos
+			crearCalendariosSorteos(connection, solicitud);
+		}
+		// si la modificacion es para solo el sorteo
+		else {
+			AutorizacionEditarSorteoDTO despues = (AutorizacionEditarSorteoDTO) solicitud.getDespues();
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_FECHA_HORA_SORTEO,
+					ValueSQL.get(despues.getFechaSorteo(), Types.DATE),
+					ValueSQL.get(setHoraEstandar(despues.getHoraSorteo()), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+		}
+	}
+
+	/**
+	 * Metodo que permite crear los calendarios sorteos para la autorizacion de modificacion
+	 */
+	private void crearCalendariosSorteos(Connection con, DetalleSolicitudCalendarioSorteoDTO solicitud) throws Exception {
+
+		// se obtiene los datos de la nueva serie
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		AutorizacionCrearEditarSerieDTO despues = (AutorizacionCrearEditarSerieDTO) solicitud.getDespues();
+
+		// se utilizan para las insercciones de SORTEO y sus detalles
+		SimpleDateFormat format = new SimpleDateFormat(Constants.FECHA_FORMATO);
+		ValueSQL valueEstadoActivo = ValueSQL.get(EstadoEnum.ACTIVO.name(), Types.VARCHAR);
+
+		// se procede a crear el registro en la tabla padre SORTEOS
+		Date fechaInicio = format.parse(despues.getFechaInicio());
+		Date fechaFinal = format.parse(despues.getFechaFinal());
+		Long idSorteo = utilJDBC.insertReturningID(con,
+				SQLConstant.INSERT_SORTEOS,
+				ValueSQL.get(fechaInicio, Types.DATE),
+				ValueSQL.get(fechaFinal, Types.DATE),
+				valueEstadoActivo);
+
+		// se utiliza para la creacion del detalle de los sorteos
+		ValueSQL valueIdSorteo = ValueSQL.get(idSorteo, Types.BIGINT);
+		ValueSQL valueIdLoteria = ValueSQL.get(despues.getIdLoteria(), Types.INTEGER);
+
+		// se obtiene los dias seleccionados
+		List<AutorizacionDiaSorteoDTO> diasHabilesSeleccionados = despues.getDiasHabilesQueJuegaSerie();
+		List<AutorizacionDiaSorteoDTO> festivosSeleccionados = despues.getDiasFestivosQueJuegaSerie();
+
+		// identifica si hay dias habiles o festivo
+		boolean hayDiasFestivos = festivosSeleccionados != null && !festivosSeleccionados.isEmpty();
+		boolean hayDiasHabiles = diasHabilesSeleccionados != null && !diasHabilesSeleccionados.isEmpty();
+
+		// Contiene los parametros para los insert del sorteo detalle
+		List<List<ValueSQL>> paramsSorteosDetalles = new ArrayList<>();
+
+		// se configura el iterador de fechas inicio - final
+		Iterator<Date> dateIterator = new DateIteratorUtil(fechaInicio, fechaFinal);
+
+		// se procede a iterar los dias entre la fecha inicio y final
+		boolean isDiaSeleccionado;
+		Integer dayOfWeek;
+		Date fechaCalendario = fechaInicio;
+		while (dateIterator.hasNext()) {
+
+			// indica si este dia fue seleccionado
+			isDiaSeleccionado = false;
+
+			// se verifica si este dia es seleccionado para los dias festivos
+			if (hayDiasFestivos) {
+				for (AutorizacionDiaSorteoDTO festivo : festivosSeleccionados) {
+					if (fechaCalendario.equals(Util.removeTime(format.parse(festivo.getFecha())))) {
+						isDiaSeleccionado = true;
+						paramsSorteosDetalles.add(getParamsDetalleSorteo(
+								valueIdSorteo, valueIdLoteria,
+								valueEstadoActivo, fechaCalendario,
+								festivo.getHora()));
+						break;
+					}
+				}
+			}
+
+			// se verifica si este dia es seleccionado para los dias habiles
+			if (!isDiaSeleccionado && hayDiasHabiles) {
+				dayOfWeek = Util.getDataCalendar(fechaCalendario, Calendar.DAY_OF_WEEK);
+				for (AutorizacionDiaSorteoDTO diaHabil : diasHabilesSeleccionados) {
+					if (dayOfWeek.equals(diaHabil.getDia())) {
+						paramsSorteosDetalles.add(getParamsDetalleSorteo(
+								valueIdSorteo, valueIdLoteria,
+								valueEstadoActivo, fechaCalendario,
+								diaHabil.getHora()));
+						break;
+					}
+				}
+			}
+
+			// se obtiene el siguiente dia entre fecha inicio - final
+			fechaCalendario = dateIterator.next();
+		}
+
+		// se inserta los detalles del sorteo
+		utilJDBC.batchConInjection(con, SQLConstant.INSERT_DETALLES_SORTEOS, paramsSorteosDetalles);
+	}
+
+	/**
+	 * Metodo que permite configurar los parametros para una insercion
+	 * del detalles sorteos con sus valores correspondiente
+	 */
+	private List<ValueSQL> getParamsDetalleSorteo(
+			ValueSQL valueIdSorteo, ValueSQL valueIdLoteria,
+			ValueSQL valueEstado, Date fecha, String horaSorteo) {
+		List<ValueSQL> params = new ArrayList<>();
+		params.add(valueIdSorteo);
+		params.add(ValueSQL.get(fecha, Types.DATE));
+		params.add(ValueSQL.get(setHoraEstandar(horaSorteo), Types.VARCHAR));
+		params.add(valueIdLoteria);
+		params.add(valueEstado);
+		return params;
 	}
 }

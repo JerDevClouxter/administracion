@@ -103,4 +103,31 @@ public class SolicitudesResource {
 			return Util.getResponseError(SolicitudesResource.class.getSimpleName() + ".rechazarSolicitudCalendarioSorteos ", e.getMessage());
 		}
 	}
+
+	/**
+	 * Servicio que permite autorizar una solicitud de calendario sorteos
+	 * @param solicitud, DTO que contiene los datos de la solicitud autorizar
+	 */
+	@PostMapping(path = "/autorizarSolicitudCalendarioSorteos",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Autorizar solicitud calendario sorteos", notes = "Permite autorizar una solicitud de calendario sorteos")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> autorizarSolicitudCalendarioSorteos(@RequestBody DetalleSolicitudCalendarioSorteoDTO solicitud) {
+		try {
+			// se procede autorizar la solicitud
+			this.service.autorizarSolicitudCalendarioSorteos(solicitud);
+
+			// si llega a este punto es porque el proceso se ejecuto sin problemas
+			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
+		} catch (Exception e) {
+			return Util.getResponseError(SolicitudesResource.class.getSimpleName() + ".autorizarSolicitudCalendarioSorteos ", e.getMessage());
+		}
+	}
 }
