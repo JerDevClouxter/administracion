@@ -1,9 +1,14 @@
 package com.administracion.service;
 
 import java.math.BigInteger;
+import java.sql.Connection;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -11,13 +16,16 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.constant.Constants;
+import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
 import com.administracion.constant.TiposAutorizacionesConstant;
 import com.administracion.dto.autorizaciones.AutorizacionCancelarSerieSorteoDTO;
 import com.administracion.dto.autorizaciones.AutorizacionCrearEditarSerieDTO;
+import com.administracion.dto.autorizaciones.AutorizacionDiaSorteoDTO;
 import com.administracion.dto.autorizaciones.AutorizacionEditarSorteoDTO;
 import com.administracion.dto.solicitudes.DetalleSolicitudCalendarioSorteoDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
@@ -26,6 +34,10 @@ import com.administracion.dto.transversal.PaginadorDTO;
 import com.administracion.dto.transversal.PaginadorResponseDTO;
 import com.administracion.enums.EstadoEnum;
 import com.administracion.enums.Numero;
+import com.administracion.jdbc.UtilJDBC;
+import com.administracion.jdbc.ValueSQL;
+import com.administracion.util.BusinessException;
+import com.administracion.util.DateIteratorUtil;
 import com.administracion.util.Util;
 import com.google.gson.Gson;
 
@@ -149,7 +161,9 @@ public class SolicitudesService {
 						// se obtiene el tipo de solicitud y el motivo solamente del primer registro
 						if (idTipoSolicitud == null) {
 							idTipoSolicitud = Integer.valueOf(Util.getValue(detalle, Numero.ZERO.valueI));
-							response.setIdTipoSolicitud(idTipoSolicitud);
+							response.setEsSolicitudCreacion(TiposAutorizacionesConstant.CREACION_SORTEOS.equals(idTipoSolicitud));
+							response.setEsSolicitudModificacion(TiposAutorizacionesConstant.MODIFICAR_SORTEOS.equals(idTipoSolicitud));
+							response.setEsSolicitudCancelacion(TiposAutorizacionesConstant.CANCELAR_SORTEOS.equals(idTipoSolicitud));
 							response.setMotivoSolicitud(Util.getValue(detalle, Numero.UNO.valueI));
 						}
 
@@ -161,7 +175,7 @@ public class SolicitudesService {
 
 							// se configua el ID de la serie o el sorteo y el campo(ID_SORTEO,ID_SORTEO_DETALLE)
 							response.setIdSerieDetalle(Long.valueOf(Util.getValue(detalle, Numero.TRES.valueI)));
-							response.setCampo(campo);
+							response.setEsSolicitudTodaLaSerie(Constants.ID_SORTEO.equals(campo));
 
 							// si el campo es ID_SORTEO_DETALLE se obtiene su hora y fecha del sorteo
 							if (Constants.ID_SORTEO_DETALLE.equals(campo)) {
@@ -176,12 +190,12 @@ public class SolicitudesService {
 					Gson apiGson = new Gson();
 
 					// si el tipo de solicitud es de CREACION de sorteos
-					if (TiposAutorizacionesConstant.CREACION_SORTEOS.equals(idTipoSolicitud)) {
+					if (response.isEsSolicitudCreacion()) {
 						response.setDespues(apiGson.fromJson(json, AutorizacionCrearEditarSerieDTO.class));
 					}
 
 					// si el tipo de solicitud es de CANCELACION de toda la serie o solamente del sorteo
-					else if (TiposAutorizacionesConstant.CANCELAR_SORTEOS.equals(idTipoSolicitud)) {
+					else if (response.isEsSolicitudCancelacion()) {
 
 						// datos despues de autorizar esta solicitud
 						response.setDespues(apiGson.fromJson(json, AutorizacionCancelarSerieSorteoDTO.class));
@@ -193,10 +207,11 @@ public class SolicitudesService {
 					}
 
 					// si el tipo de solicitud es de MODIFICACION de toda la serie o solamente del sorteo
-					else if (TiposAutorizacionesConstant.MODIFICAR_SORTEOS.equals(idTipoSolicitud)) {
+					else if (response.isEsSolicitudModificacion()) {
+						response.setDespuesJson(json);
 
 						// si es modificacion de toda la serie
-						if (Constants.ID_SORTEO.equals(response.getCampo())) {
+						if (response.isEsSolicitudTodaLaSerie()) {
 
 							// datos despues de autorizar esta solicitud
 							response.setDespues(apiGson.fromJson(json, AutorizacionCrearEditarSerieDTO.class));
@@ -211,8 +226,7 @@ public class SolicitudesService {
 						}
 
 						// si es modificacion de solo un sorteo
-						else if (Constants.ID_SORTEO_DETALLE.equals(response.getCampo())) {
-
+						else {
 							// datos despues de autorizar esta solicitud
 							response.setDespues(apiGson.fromJson(json, AutorizacionEditarSorteoDTO.class));
 
@@ -227,6 +241,99 @@ public class SolicitudesService {
 			}
 		}
 		return response;
+	}
+
+	/**
+	 * Servicio que permite rechazar una solicitud de calendario sorteos
+	 * @param solicitud, DTO que contiene los datos de la solicitud a rechazar
+	 */
+	@Transactional
+	public void rechazarSolicitudCalendarioSorteos(DetalleSolicitudCalendarioSorteoDTO solicitud) throws Exception {
+
+		// los datos de la solicitud son requerido
+		if (solicitud == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// el usuario quien rechaza y el id de la solicitud son requeridos
+		Long idUsuarioAutoriza = solicitud.getIdUsuarioAutoriza();
+		Long idSolicitud = solicitud.getIdSolicitud();
+		if (idUsuarioAutoriza == null || idSolicitud == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// para el proceso de creacion el id del sorteo es requerido
+		Long idSerieDetalle = solicitud.getIdSerieDetalle();
+		if (solicitud.isEsSolicitudCreacion() && idSerieDetalle == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			// se cambia el estado de la solicitud a RECHAZADO
+			ValueSQL estadoRechazado = ValueSQL.get(EstadoEnum.RECHAZADO.name(), Types.VARCHAR);
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_AUTORIZACION,
+					estadoRechazado,
+					ValueSQL.get(idUsuarioAutoriza, Types.BIGINT),
+					ValueSQL.get(idSolicitud, Types.BIGINT));
+
+			// para el proceso de CREACION se cambia el estado del sorteo y sus detalles a RECHAZADO
+			if (solicitud.isEsSolicitudCreacion()) {
+				setEstadoTodoCalendarioSorteo(connection, estadoRechazado, ValueSQL.get(idSerieDetalle, Types.BIGINT));
+			}
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
+	}
+
+	/**
+	 * Servicio que permite autorizar una solicitud de calendario sorteos
+	 * 
+	 * @param solicitud, DTO que contiene los datos de la solicitud autorizar
+	 */
+	@Transactional
+	public void autorizarSolicitudCalendarioSorteos(DetalleSolicitudCalendarioSorteoDTO solicitud) throws Exception {
+
+		// los datos de la solicitud son requerido
+		if (solicitud == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// usuario quien rechaza, id de la solicitud y el id de la serie, sorteo son requeridos
+		Long idUsuarioAutoriza = solicitud.getIdUsuarioAutoriza();
+		Long idSolicitud = solicitud.getIdSolicitud();
+		Long idSerieDetalle = solicitud.getIdSerieDetalle();
+		if (idUsuarioAutoriza == null || idSolicitud == null || idSerieDetalle == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			// se cambia el estado de la solicitud AUTORIZADO
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_AUTORIZACION,
+					ValueSQL.get(EstadoEnum.AUTORIZADO.name(), Types.VARCHAR),
+					ValueSQL.get(idUsuarioAutoriza, Types.BIGINT),
+					ValueSQL.get(idSolicitud, Types.BIGINT));
+
+			// se valida el tipo de solicitud (CREACION, EDICION, CANCELACION)
+			if (solicitud.isEsSolicitudCreacion()) {
+				procesarSolicitudCreacionSorteos(solicitud, connection);
+			} else if (solicitud.isEsSolicitudModificacion()) {
+				procesarSolicitudModificacionSorteos(solicitud, connection);
+			} else if (solicitud.isEsSolicitudCancelacion()) {
+				procesarSolicitudCancelacionSorteos(solicitud, connection);
+			}
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
 	}
 
 	/**
@@ -255,5 +362,210 @@ public class SolicitudesService {
 			from.append(SQLConstant.FILTER_SOLICITUDES_CALENDARIO_FECHA_FINAL);
 			parametros.add(Util.removeTime(fechaFinal));
 		}
+	}
+
+	/**
+	 * Metodo que permite cambiar el estado de todo un calendario sorteo
+	 */
+	private void setEstadoTodoCalendarioSorteo(
+			Connection connection,
+			ValueSQL valueSQLEstado,
+			ValueSQL valueSQLIdSorteo) throws Exception {
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+
+		// update estado para la tabla SORTEOS
+		utilJDBC.insertUpdate(connection,
+				SQLConstant.UPDATE_ESTADO_CALENDARIO_SORTEO,
+				valueSQLEstado,
+				valueSQLIdSorteo);
+
+		// update estado para la tabla SORTEOS_DETALLES
+		utilJDBC.insertUpdate(connection,
+				SQLConstant.UPDATE_ESTADO_DETALLES_CALENDARIO_SORTEO,
+				valueSQLEstado,
+				valueSQLIdSorteo);
+	}
+
+	/**
+	 * Metodo que permite configurar la hora standar donde
+	 * debe tener su dos ultimos segundos
+	 *
+	 * @param hora, es la hora a validar
+	 * @return, nueva valor con la hora correcta
+	 */
+	private String setHoraEstandar(String hora) {
+		int length = hora.length();
+		if (length == Numero.CINCO.valueI || length == Numero.CUATRO.valueI) {
+			hora += ":00";
+		}
+		return hora;
+	}
+
+	/**
+	 * Metodo que permite procesar la solicitud de CREACION de sorteos
+	 */
+	private void procesarSolicitudCreacionSorteos(
+			DetalleSolicitudCalendarioSorteoDTO solicitud,
+			Connection connection) throws Exception {
+
+		// para el proceso de CREACION se ACTIVA toda la serie con sus detalles
+		setEstadoTodoCalendarioSorteo(connection,
+				ValueSQL.get(EstadoEnum.ACTIVO.name(), Types.VARCHAR),
+				ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+	}
+
+	/**
+	 * Metodo que permite procesar la solicitud de CANCELACION de sorteos
+	 */
+	private void procesarSolicitudCancelacionSorteos(
+			DetalleSolicitudCalendarioSorteoDTO solicitud,
+			Connection connection) throws Exception {
+
+		// si la cancelacion es para toda la serie
+		if (solicitud.isEsSolicitudTodaLaSerie()) {
+			setEstadoTodoCalendarioSorteo(connection,
+					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+		}
+		// si la cancelacion es para solo el sorteo
+		else {
+			UtilJDBC.getInstance().insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_SORTEO,
+					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+		}
+	}
+
+	/**
+	 * Metodo que permite procesar la solicitud de MODIFICACION de sorteos
+	 */
+	private void procesarSolicitudModificacionSorteos(
+			DetalleSolicitudCalendarioSorteoDTO solicitud,
+			Connection connection) throws Exception {
+
+		// instacia de las utilidades de JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+
+		// si la modificacion es para toda la serie
+		if (solicitud.isEsSolicitudTodaLaSerie()) {
+
+			// se cancela todos los detalles del sorteo
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_ESTADO_DETALLES_CALENDARIO_SORTEO,
+					ValueSQL.get(EstadoEnum.CANCELADO.name(), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+
+			// se procede a crear el calendario sorteo activos
+			crearCalendariosSorteos(connection, solicitud);
+		}
+		// si la modificacion es para solo el sorteo
+		else {
+			AutorizacionEditarSorteoDTO despues = new Gson().fromJson(
+					solicitud.getDespuesJson(),
+					AutorizacionEditarSorteoDTO.class);
+			utilJDBC.insertUpdate(connection,
+					SQLConstant.UPDATE_FECHA_HORA_SORTEO,
+					ValueSQL.get(despues.getFechaSorteo(), Types.DATE),
+					ValueSQL.get(setHoraEstandar(despues.getHoraSorteo()), Types.VARCHAR),
+					ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT));
+		}
+	}
+
+	/**
+	 * Metodo que permite crear los calendarios sorteos para la autorizacion de modificacion
+	 */
+	private void crearCalendariosSorteos(Connection con, DetalleSolicitudCalendarioSorteoDTO solicitud) throws Exception {
+
+		// se obtiene los datos de la nueva serie
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		AutorizacionCrearEditarSerieDTO despues = new Gson().fromJson(
+				solicitud.getDespuesJson(),
+				AutorizacionCrearEditarSerieDTO.class);
+
+		// se utilizan para las insercciones de SORTEO y sus detalles
+		SimpleDateFormat format = new SimpleDateFormat(Constants.FECHA_FORMATO);
+		ValueSQL valueEstadoActivo = ValueSQL.get(EstadoEnum.ACTIVO.name(), Types.VARCHAR);
+
+		// se procede a crear el registro en la tabla padre SORTEOS
+		Date fechaInicio = format.parse(despues.getFechaInicio());
+		Date fechaFinal = format.parse(despues.getFechaFinal());
+
+		// se utiliza para la creacion del detalle de los sorteos
+		ValueSQL valueIdSorteo = ValueSQL.get(solicitud.getIdSerieDetalle(), Types.BIGINT);
+		ValueSQL valueIdLoteria = ValueSQL.get(despues.getIdLoteria(), Types.INTEGER);
+
+		// se obtiene los dias seleccionados
+		List<AutorizacionDiaSorteoDTO> diasHabilesSeleccionados = despues.getDiasHabilesQueJuegaSerie();
+		List<AutorizacionDiaSorteoDTO> festivosSeleccionados = despues.getDiasFestivosQueJuegaSerie();
+
+		// identifica si hay dias habiles o festivo
+		boolean hayDiasFestivos = festivosSeleccionados != null && !festivosSeleccionados.isEmpty();
+		boolean hayDiasHabiles = diasHabilesSeleccionados != null && !diasHabilesSeleccionados.isEmpty();
+
+		// Contiene los parametros para los insert del sorteo detalle
+		List<List<ValueSQL>> paramsSorteosDetalles = new ArrayList<>();
+
+		// se configura el iterador de fechas inicio - final
+		Iterator<Date> dateIterator = new DateIteratorUtil(fechaInicio, fechaFinal);
+
+		// se procede a iterar los dias entre la fecha inicio y final
+		boolean isDiaSeleccionado;
+		Integer dayOfWeek;
+		Date fechaCalendario = fechaInicio;
+		while (dateIterator.hasNext()) {
+
+			// indica si este dia fue seleccionado
+			isDiaSeleccionado = false;
+
+			// se verifica si este dia es seleccionado para los dias festivos
+			if (hayDiasFestivos) {
+				for (AutorizacionDiaSorteoDTO festivo : festivosSeleccionados) {
+					if (fechaCalendario.equals(Util.removeTime(format.parse(festivo.getFecha())))) {
+						isDiaSeleccionado = true;
+						paramsSorteosDetalles.add(getParamsDetalleSorteo(
+								valueIdSorteo, valueIdLoteria,
+								valueEstadoActivo, fechaCalendario,
+								festivo.getHora()));
+						break;
+					}
+				}
+			}
+
+			// se verifica si este dia es seleccionado para los dias habiles
+			if (!isDiaSeleccionado && hayDiasHabiles) {
+				dayOfWeek = Util.getDataCalendar(fechaCalendario, Calendar.DAY_OF_WEEK);
+				for (AutorizacionDiaSorteoDTO diaHabil : diasHabilesSeleccionados) {
+					if (dayOfWeek.equals(diaHabil.getDia())) {
+						paramsSorteosDetalles.add(getParamsDetalleSorteo(
+								valueIdSorteo, valueIdLoteria,
+								valueEstadoActivo, fechaCalendario,
+								diaHabil.getHora()));
+						break;
+					}
+				}
+			}
+
+			// se obtiene el siguiente dia entre fecha inicio - final
+			fechaCalendario = dateIterator.next();
+		}
+
+		// se inserta los detalles del sorteo
+		utilJDBC.batchConInjection(con, SQLConstant.INSERT_DETALLES_SORTEOS, paramsSorteosDetalles);
+	}
+
+	/**
+	 * Metodo que permite configurar los parametros para una insercion
+	 * del detalles sorteos con sus valores correspondiente
+	 */
+	private List<ValueSQL> getParamsDetalleSorteo(
+			ValueSQL valueIdSorteo, ValueSQL valueIdLoteria,
+			ValueSQL valueEstado, Date fecha, String horaSorteo) {
+		List<ValueSQL> params = new ArrayList<>();
+		params.add(valueIdSorteo);
+		params.add(ValueSQL.get(fecha, Types.DATE));
+		params.add(ValueSQL.get(setHoraEstandar(horaSorteo), Types.VARCHAR));
+		params.add(valueIdLoteria);
+		params.add(valueEstado);
+		return params;
 	}
 }

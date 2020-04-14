@@ -85,4 +85,14 @@ public class Util {
 		calendar.set(Calendar.MILLISECOND, 0);
 		return calendar.getTime();
 	}
+
+	/**
+	 * Metodo que permite obtener un dato especifico
+	 * (hour, day, month ect) de una fecha a partir de un Date
+	 */
+	public static Integer getDataCalendar(Date fecha, int typeData) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(fecha);
+		return calendar.get(typeData);
+	}
 }

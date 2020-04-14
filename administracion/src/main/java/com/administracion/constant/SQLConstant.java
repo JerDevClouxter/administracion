@@ -102,4 +102,27 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 		+ "WHERE A.ID_ESTADO='" + EstadoEnum.AUTORIZADO.name() + "' "
 		+ "AND A.ID_TIPO_AUTORIZACION IN(" + TiposAutorizacionesConstant.CREACION_SORTEOS + "," + TiposAutorizacionesConstant.MODIFICAR_SORTEOS + ")"
 		+ "AND AD.CAMPO='" + Constants.ID_SORTEO + "' AND AD.VALOR=? ORDER BY A.ID_AUTORIZACION DESC LIMIT 1";
+
+	/** UPDATE para cambiar el estado de una autorizacion */
+	public static final String UPDATE_ESTADO_AUTORIZACION =
+		"UPDATE AUTORIZACIONES "
+			+ "SET ID_ESTADO=?,"
+			+ "ID_USUARIO_AUTORIZADOR=?,"
+			+ "FECHA_AUTORIZACION=CURRENT_DATE "
+		+ "WHERE ID_AUTORIZACION=?";
+
+	/** UPDATE para cambiar el estado del calendario sorteo */
+	public static final String UPDATE_ESTADO_CALENDARIO_SORTEO = "UPDATE SORTEOS SET ID_ESTADO=? WHERE ID_SORTEO=?";
+
+	/** UPDATE para cambiar el estado de todos los detalles del calendario sorteo */
+	public static final String UPDATE_ESTADO_DETALLES_CALENDARIO_SORTEO = "UPDATE SORTEOS_DETALLES SET ID_ESTADO=? WHERE ID_SORTEO=?";
+
+	/** UPDATE para cambiar el estado de un detalle de la serie */
+	public static final String UPDATE_ESTADO_SORTEO = "UPDATE SORTEOS_DETALLES SET ID_ESTADO=? WHERE ID_SORTEO_DETALLE=?";
+
+	/** UPDATE para cambiar la FECHA Y HORA del sorteo */
+	public static final String UPDATE_FECHA_HORA_SORTEO = "UPDATE SORTEOS_DETALLES SET FECHA_SORTEO=?,HORA_SORTEO=? WHERE ID_SORTEO_DETALLE=?";
+
+	/** Insert para la tabla SORTEOS_DETALLES */
+	public static final String INSERT_DETALLES_SORTEOS = "INSERT INTO SORTEOS_DETALLES(ID_SORTEO,FECHA_SORTEO,HORA_SORTEO,ID_LOTERIA,ID_ESTADO)VALUES(?,?,?,?,?)";
 }

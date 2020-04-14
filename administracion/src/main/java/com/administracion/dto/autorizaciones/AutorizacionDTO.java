@@ -10,6 +10,9 @@ import lombok.Data;
 public class AutorizacionDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	/** Identificador de la loteria **/
+	private Integer idLoteria;
+
 	/** Nombre de la loteria de la serie **/
 	private String nombreLoteria;
 
