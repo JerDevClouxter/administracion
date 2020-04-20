@@ -264,7 +264,14 @@ public class MultinivelService {
 
 	}
 
-	
+	/**
+	 * Se valida que exista comisión productos, de lo contrario
+	 * se no se tiene en cuenta el producto para la configuración de
+	 * la empresa hija
+	 * 
+	 * @param listaProductosEmprePadre, lista de productos asiciados a una empresa
+	 * @throws BusinessException
+	 */
 	private void existeComisionAsociadaProdPadre(List<EmpresasProductosDTO> listaProductosEmprePadre)
 			throws BusinessException {
 
