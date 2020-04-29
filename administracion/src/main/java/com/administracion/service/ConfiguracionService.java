@@ -176,12 +176,14 @@ public class ConfiguracionService {
 	 * @return ConfiguracionUsuarioDTO
 	 * @throws BusinessException
 	 */
-	public ConfiguracionUsuarioDTO consultarUsuarioTipDocNum(String tipoDocumento, Long numeroDocumento)
+	public ConfiguracionUsuarioDTO consultarUsuarioTipDocNum(String tipoDocumento, String numeroDocumento)
 			throws BusinessException {
 		ConfiguracionUsuarioDTO configUsuarioDTO = new ConfiguracionUsuarioDTO();
+
+		try {
 		Long idUsuario = null;
 		Query q = em.createNativeQuery(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC)
-				.setParameter("tipoDucumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
+				.setParameter("tipoDocumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
 		List<Object[]> listaT = q.getResultList();
 		if (listaT != null && !listaT.isEmpty()) {
 			for (Object[] data : listaT) {
@@ -228,6 +230,9 @@ public class ConfiguracionService {
 
 		} else {
 			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
+		}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return configUsuarioDTO;
