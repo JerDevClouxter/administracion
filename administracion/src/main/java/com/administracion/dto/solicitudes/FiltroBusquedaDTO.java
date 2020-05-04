@@ -23,4 +23,13 @@ public class FiltroBusquedaDTO implements Serializable {
 
 	/** Fecha de final de la solicitud **/
 	private Date fechaFinal;
+
+	/** filtro por identificador de la empresa **/
+	private Long idEmpresa;
+
+	/** filtro por estado **/
+	private String estado;
+
+	/** filtro por nombre **/
+	private String nombre;
 }

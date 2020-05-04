@@ -16,4 +16,7 @@ public class Constants {
 
 	/** Nombre para el valor del campo REQUEST_JSON */
 	public static final String REQUEST_JSON = "REQUEST_JSON";
+
+	/** COMA para las sentencias SQL */
+	public static final String COMA = ",";
 }
