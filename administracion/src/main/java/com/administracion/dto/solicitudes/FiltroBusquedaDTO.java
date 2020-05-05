@@ -27,8 +27,8 @@ public class FiltroBusquedaDTO implements Serializable {
 	/** filtro por identificador de la empresa **/
 	private Long idEmpresa;
 
-	/** filtro por estado **/
-	private String estado;
+	/** filtro por estado, tipo Boolean dado que puede llegar 3 valores**/
+	private Boolean estado;
 
 	/** filtro por nombre **/
 	private String nombre;

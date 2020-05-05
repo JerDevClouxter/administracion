@@ -17,6 +17,7 @@ import com.administracion.dto.roles.RolDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.dto.transversal.PaginadorDTO;
 import com.administracion.dto.transversal.PaginadorResponseDTO;
+import com.administracion.enums.EstadoEnum;
 import com.administracion.enums.Numero;
 import com.administracion.util.Util;
 
@@ -44,13 +45,16 @@ public class RolesService {
 		PaginadorResponseDTO response = new PaginadorResponseDTO();
 
 		// se obtiene el from de la consulta
-		StringBuilder from = new StringBuilder(SQLConstant.FROM_ROLES);
+		StringBuilder sql = new StringBuilder(SQLConstant.SQL_GET_ROLES);
 
 		// contiene los valores de los parametros del los filtros
 		ArrayList<Object> parametros = new ArrayList<>();
 
 		// se configura los filtros de busqueda ingresados
-		setFiltrosBusquedaRoles(from, parametros, filtro);
+		setFiltrosBusquedaRoles(sql, parametros, filtro);
+
+		// se agrupa y se ordena la consulta
+		sql.append(SQLConstant.ORDER_GROUP_ROLES); 
 
 		// se utiliza para obtener los datos del paginador
 		PaginadorDTO paginador = filtro.getPaginador();
@@ -60,7 +64,7 @@ public class RolesService {
 		if (response.getCantidadTotal() == null) {
 
 			// se configura el query con los valores de los filtros
-			Query qcount = this.em.createNativeQuery(SQLTransversal.getSQLCount(from.toString()));
+			Query qcount = this.em.createNativeQuery(SQLTransversal.getSQLCountTbl(sql.toString()));
 			Util.setParameters(qcount, parametros);
 
 			// se configura la cantidad total de acuerdo al filtro de busqueda
@@ -70,12 +74,6 @@ public class RolesService {
 		// solo se consultan los registros solo si existen de acuerdo al filtro
 		if (response.getCantidadTotal() != null &&
 			!response.getCantidadTotal().equals(Numero.ZERO.valueL)) {
-
-			// se configura el SQL de la consulta principal
-			StringBuilder sql = new StringBuilder(SQLConstant.SELECT_ROLES + from.toString());
-
-			// se ordena la consulta
-			sql.append(SQLConstant.ORDER_GROUP_ROLES);
 
 			// se configura la paginacion de la consulta
 			SQLTransversal.getSQLPaginator(paginador.getSkip(), paginador.getRowsPage(), sql);
@@ -124,17 +122,18 @@ public class RolesService {
 		}
 
 		// filtro por el estado del ROLE
-		String estado = filtro.getEstado();
-		if (!Util.isNull(estado)) {
-			from.append(from.length() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
+		Boolean estado = filtro.getEstado();
+		if (estado != null) {
+			String idEstado = estado.booleanValue() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name();
+			from.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
 			from.append("R.ID_ESTADO=?");
-			parametros.add(estado);
+			parametros.add(idEstado);
 		}
 
 		// filtro por nombre del ROLE
 		String nombre = filtro.getNombre();
 		if (!Util.isNull(nombre)) {
-			from.append(from.length() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
+			from.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
 			from.append("UPPER(R.NOMBRE)=UPPER(?)");
 			parametros.add(nombre);
 		}
