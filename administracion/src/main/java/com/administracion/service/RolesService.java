@@ -10,7 +10,6 @@ import javax.persistence.Query;
 
 import org.springframework.stereotype.Service;
 
-import com.administracion.constant.Constants;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
 import com.administracion.dto.roles.RolDTO;
@@ -85,20 +84,13 @@ public class RolesService {
 
 			// se recorre cada role
 			RolDTO rol;
-			String split;
 			for (Object[] roles : result) {
 				rol = new RolDTO();
 				rol.setId(Long.valueOf(Util.getValue(roles, Numero.ZERO.valueI)));
 				rol.setNombre(Util.getValue(roles, Numero.UNO.valueI));
 				rol.setDescripcion(Util.getValue(roles, Numero.DOS.valueI));
-				split = Util.getValue(roles, Numero.TRES.valueI);
-				if (!Util.isNull(split)) {
-					rol.setEmpresas(split.split(Constants.COMA));
-				}
-				split = Util.getValue(roles, Numero.CUATRO.valueI);
-				if (!Util.isNull(split)) {
-					rol.setRecursos(split.split(Constants.COMA));
-				}
+				rol.setEmpresas(Util.getValue(roles, Numero.TRES.valueI));
+				rol.setRecursos(Util.getValue(roles, Numero.CUATRO.valueI));
 				response.agregarRegistro(rol);
 			}
 		}

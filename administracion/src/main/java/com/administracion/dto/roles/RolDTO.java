@@ -20,9 +20,9 @@ public class RolDTO implements Serializable {
 	/** Descripcion del ROL **/
 	private String descripcion;
 
-	/** Son los nombres de las empresas asociadas al ROL **/
-	private String[] empresas;
+	/** Son los nombres de las empresas asociadas al ROL, separadas por coma**/
+	private String empresas;
 
-	/** Son los nombres de los recursos asociados al ROL **/
-	private String[] recursos;
+	/** Son los nombres de los recursos asociados al ROL, separadas por coma **/
+	private String recursos;
 }
