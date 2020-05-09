@@ -20,4 +20,15 @@ public class SQLTransversal {
 		sql.append(from);
 		return sql.toString();
 	}
+
+	/**
+	 * Metodo que permite construir el COUNT para obtener la cantidad de una consulta
+	 * dejando un alias en la subconsulta
+	 */
+	public static String getSQLCountTbl(String from) {
+		StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM(");
+		sql.append(from);
+		sql.append(")AS tbl");
+		return sql.toString();
+	}
 }

@@ -18,6 +18,13 @@ import com.administracion.enums.Numero;
 public class Util {
 
 	/**
+	 * Metodo que permite validar si un valor es null o vacio
+	 */
+	public static boolean isNull(String valor) {
+		return valor == null || valor.trim().length() == Numero.ZERO.valueI.intValue();
+	}
+
+	/**
 	 * Metodo que permite construir el response de respuesta exitoso
 	 */
 	public static ResponseEntity<Object> getResponseSuccessful(Object body) {
