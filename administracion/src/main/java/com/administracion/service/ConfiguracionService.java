@@ -1,6 +1,8 @@
 package com.administracion.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -181,56 +183,53 @@ public class ConfiguracionService {
 		ConfiguracionUsuarioDTO configUsuarioDTO = new ConfiguracionUsuarioDTO();
 
 		try {
-		Long idUsuario = null;
-		Query q = em.createNativeQuery(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC)
-				.setParameter("tipoDocumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
-		List<Object[]> listaT = q.getResultList();
-		if (listaT != null && !listaT.isEmpty()) {
-			for (Object[] data : listaT) {
-				PersonasDTO personaDTO = new PersonasDTO();
-				idUsuario = Long.valueOf(Util.getValue(data, Numero.ZERO.valueI));
-				personaDTO.setIdPersona(idUsuario);
-				personaDTO.setIdTipoDocumento(Util.getValue(data, Numero.UNO.valueI));
-				personaDTO.setNumeroDocumento(Util.getValue(data, Numero.DOS.valueI));
-				personaDTO.setPrimerNombre(Util.getValue(data, Numero.TRES.valueI));
-				personaDTO.setSegundoNombre(Util.getValue(data, Numero.CUATRO.valueI));
-				personaDTO.setPrimerApellido(Util.getValue(data, Numero.CINCO.valueI));
-				personaDTO.setSegundoApellido(Util.getValue(data, Numero.SEIS.valueI));
-				personaDTO.setDireccion(Util.getValue(data, Numero.SIETE.valueI));
-				personaDTO.setTelefono(Util.getValue(data, Numero.OCHO.valueI));
-				personaDTO.setCelular(Util.getValue(data, Numero.NUEVE.valueI));
-				personaDTO.setCorreoElectronico(Util.getValue(data, Numero.DIEZ.valueI));
-				personaDTO.setEstrato(Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)));
+			Long idUsuario = null;
+			Query q = em.createNativeQuery(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC)
+					.setParameter("tipoDocumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
+			List<Object[]> listaT = q.getResultList();
+			if (listaT != null && !listaT.isEmpty()) {
+				for (Object[] data : listaT) {
+					PersonasDTO personaDTO = new PersonasDTO();
+					idUsuario = Long.valueOf(Util.getValue(data, Numero.ZERO.valueI));
+					personaDTO.setIdPersona(idUsuario);
+					personaDTO.setIdTipoDocumento(Util.getValue(data, Numero.UNO.valueI));
+					personaDTO.setNumeroDocumento(Util.getValue(data, Numero.DOS.valueI));
+					personaDTO.setPrimerNombre(Util.getValue(data, Numero.TRES.valueI));
+					personaDTO.setSegundoNombre(Util.getValue(data, Numero.CUATRO.valueI));
+					personaDTO.setPrimerApellido(Util.getValue(data, Numero.CINCO.valueI));
+					personaDTO.setSegundoApellido(Util.getValue(data, Numero.SEIS.valueI));
+					personaDTO.setDireccion(Util.getValue(data, Numero.SIETE.valueI));
+					personaDTO.setTelefono(Util.getValue(data, Numero.OCHO.valueI));
+					personaDTO.setCelular(Util.getValue(data, Numero.NUEVE.valueI));
+					personaDTO.setCorreoElectronico(Util.getValue(data, Numero.DIEZ.valueI));
+					personaDTO.setEstrato(Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)));
 
-				UsuariosDTO usuarioDTO = new UsuariosDTO();
-				usuarioDTO.setNombreUsuario(Util.getValue(data, Numero.DOCE.valueI));
-				usuarioDTO.setClave(Util.getValue(data, Numero.TRECE.valueI));
-				usuarioDTO.setIdEstado(Util.getValue(data, Numero.CATORCE.valueI));
+					UsuariosDTO usuarioDTO = new UsuariosDTO();
+					usuarioDTO.setNombreUsuario(Util.getValue(data, Numero.DOCE.valueI));
+					usuarioDTO.setClave(Util.getValue(data, Numero.TRECE.valueI));
+					usuarioDTO.setIdEstado(Util.getValue(data, Numero.CATORCE.valueI));
 
-				configUsuarioDTO.setPersonasDTO(personaDTO);
-				configUsuarioDTO.setUsuariosDTO(usuarioDTO);
-			}
-
-			// Se consultan los roles empresa usuario asignados al usuario encontrado en la
-			// busqueda
-			List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = consultarUsuarioRolesIdUsuario(idUsuario);
-			if (listUsuRolesEmpresasDTO != null && !listUsuRolesEmpresasDTO.isEmpty()) {
-				// Se arman las listas de roles y empresas asociadas al usuario
-				List<RolesDTO> rolesUsuarioDTO = new ArrayList<>();
-				List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
-				for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
-					rolesUsuarioDTO.add(consultarRolById(usuaRolEmpresasDTO.getIdRol()));
-					empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
+					configUsuarioDTO.setPersonasDTO(personaDTO);
+					configUsuarioDTO.setUsuariosDTO(usuarioDTO);
 				}
-				configUsuarioDTO.setListRolesDTO(rolesUsuarioDTO);
-				configUsuarioDTO.setListEmpresasDTO(empresasUsuarioDTO);
+
+				// Se consultan los roles empresa usuario asignados al usuario encontrado en la
+				// busqueda
+				List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = consultarUsuarioRolesIdUsuario(idUsuario);
+				if (listUsuRolesEmpresasDTO != null && !listUsuRolesEmpresasDTO.isEmpty()) {
+					// Se arman las listas de roles y empresas asociadas al usuario
+					List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
+					for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
+						empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
+					}
+					configUsuarioDTO.setListEmpresasDTO(empresasUsuarioDTO);
+				} else {
+					throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
+				}
+
 			} else {
 				throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
 			}
-
-		} else {
-			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
-		}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -283,6 +282,7 @@ public class ConfiguracionService {
 				.setParameter("idUSuario", idUSuario).setParameter("idEstado", EstadoEnum.ACTIVO.name());
 		List<Object[]> result = q.getResultList();
 		List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = new ArrayList<>();
+		HashMap<Long, UsuariosRolesEmpresasDTO> mapUsuEmpresas = new HashMap<>();
 		if (result != null && !result.isEmpty()) {
 			for (Object[] data : result) {
 				UsuariosRolesEmpresasDTO usuRolesEmpresasDTO = new UsuariosRolesEmpresasDTO();
@@ -291,14 +291,14 @@ public class ConfiguracionService {
 				usuRolesEmpresasDTO.setIdUsuario(Long.valueOf(Util.getValue(data, Numero.DOS.valueI)));
 				usuRolesEmpresasDTO.setIdEstado(Util.getValue(data, Numero.TRES.valueI));
 
-				listUsuRolesEmpresasDTO.add(usuRolesEmpresasDTO);
-
+				mapUsuEmpresas.put(usuRolesEmpresasDTO.getIdEmpresa(), usuRolesEmpresasDTO);
 			}
 
 		} else {
 			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_ROL_EMPRESA_POR_IDUSUARIO.value);
 		}
-
+		Collection<UsuariosRolesEmpresasDTO> empresasUsuario = mapUsuEmpresas.values();
+		listUsuRolesEmpresasDTO.addAll(empresasUsuario);
 		return listUsuRolesEmpresasDTO;
 	}
 

@@ -145,5 +145,6 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 
 	/** Update para la tabla USUARIOS_ROLES_EMPRESAS */
 	public static final String INSERT_USUARIOS_ROLES_EMPRESAS = "INSERT INTO USUARIOS_ROLES_EMPRESAS(ID_USUARIO, ID_ROL, ID_EMPRESA, ID_ESTADO)VALUES(:idUsuario, :idRol, :idEmpresa, :idEstado)";
+	
 
 }
