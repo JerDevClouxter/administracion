@@ -205,6 +205,7 @@ public class ConfiguracionService {
 					personaDTO.setEstrato(Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)));
 
 					UsuariosDTO usuarioDTO = new UsuariosDTO();
+					usuarioDTO.setIdUsuario(idUsuario);
 					usuarioDTO.setNombreUsuario(Util.getValue(data, Numero.DOCE.valueI));
 					usuarioDTO.setClave(Util.getValue(data, Numero.TRECE.valueI));
 					usuarioDTO.setIdEstado(Util.getValue(data, Numero.CATORCE.valueI));
@@ -217,12 +218,19 @@ public class ConfiguracionService {
 				// busqueda
 				List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = consultarUsuarioRolesIdUsuario(idUsuario);
 				if (listUsuRolesEmpresasDTO != null && !listUsuRolesEmpresasDTO.isEmpty()) {
-					// Se arman las listas de roles y empresas asociadas al usuario
-					List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
-					for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
-						empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
-					}
-					configUsuarioDTO.setListEmpresasDTO(empresasUsuarioDTO);
+					ConfiguracionUsuarioDTO empresasYRoles = obtenerEmpresasYRoles(listUsuRolesEmpresasDTO);
+//					// Se arman las listas de roles y empresas asociadas al usuario
+//					List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
+//					List<RolesDTO> rolesUsuarioDTO = new ArrayList<>();
+//					for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
+//						empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
+//						rolesUsuarioDTO.add(consultarRolById(usuaRolEmpresasDTO.getIdRol()));
+//
+//					}
+
+					configUsuarioDTO.setListEmpresasDTO(empresasYRoles.getListEmpresasDTO());
+					configUsuarioDTO.setListRolesDTO(empresasYRoles.getListRolesDTO());
+
 				} else {
 					throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
 				}
@@ -261,8 +269,6 @@ public class ConfiguracionService {
 
 			}
 
-		} else {
-			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_EMPRESA_POR_IDUSUARIO.value);
 		}
 
 		return listEmpUsuarioDTO;
@@ -294,9 +300,7 @@ public class ConfiguracionService {
 				mapUsuEmpresas.put(usuRolesEmpresasDTO.getIdEmpresa(), usuRolesEmpresasDTO);
 			}
 
-		} else {
-			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_ROL_EMPRESA_POR_IDUSUARIO.value);
-		}
+		} 
 		Collection<UsuariosRolesEmpresasDTO> empresasUsuario = mapUsuEmpresas.values();
 		listUsuRolesEmpresasDTO.addAll(empresasUsuario);
 		return listUsuRolesEmpresasDTO;
@@ -315,42 +319,84 @@ public class ConfiguracionService {
 		try {
 			Builder<UsuariosDTO, Usuarios> builderUsuario = new Builder<>(Usuarios.class);
 			Builder<PersonasDTO, Personas> builderPersona = new Builder<>(Personas.class);
-			usuarioRepository.save(builderUsuario.copy(configuracionUsuarioDTO.getUsuariosDTO()));
-			personaRepository.save(builderPersona.copy(configuracionUsuarioDTO.getPersonasDTO()));
+			Personas personaSave = builderPersona.copy(configuracionUsuarioDTO.getPersonasDTO());
+			Usuarios usuariosaSave = builderUsuario.copy(configuracionUsuarioDTO.getUsuariosDTO());
+			if (configuracionUsuarioDTO.getPersonasDTO().getIdPersona() == null) {
+			personaRepository.save(personaSave);
+			usuarioRepository.save(usuariosaSave);
+			Long idUsuario = personaSave.getIdPersona();
+			usuariosaSave.setIdUsuario(idUsuario);
+				// Se crear relacion en tabla roles empresa y despues en usuarios roles
+				// empresa
+				for (UsuariosRolesEmpresasDTO usuariosRolesEmpresa : configuracionUsuarioDTO
+						.getListUsuariosRolesEmpresasDTO()) {
 
-			// Se crear relacion en tabla roles empresa y despues en usuarios roles
-			// empresa
-			for (UsuariosRolesEmpresasDTO usuariosRolesEmpresa : configuracionUsuarioDTO
-					.getListUsuariosRolesEmpresasDTO()) {
+//						em.createNativeQuery(SQLConstant.UPDATE_ROLES_EMPRESAS)
+//								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
+//								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
+//								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+//
+//						em.createNativeQuery(SQLConstant.UPDATE_USUARIOS_ROLES_EMPRESAS)
+//								.setParameter("idUsuario", usuariosRolesEmpresa.getIdUsuario())
+//								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
+//								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
+//								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+	
+						em.createNativeQuery(SQLConstant.INSERT_ROLES_EMPRESAS)
+								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
+								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
+								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
 
-				if (configuracionUsuarioDTO.getUsuariosDTO().getIdEstado() != null) {
-					em.createNativeQuery(SQLConstant.UPDATE_ROLES_EMPRESAS)
-							.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-
-					em.createNativeQuery(SQLConstant.UPDATE_USUARIOS_ROLES_EMPRESAS)
-							.setParameter("idUsuario", usuariosRolesEmpresa.getIdUsuario())
-							.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-				} else {
-					em.createNativeQuery(SQLConstant.INSERT_ROLES_EMPRESAS)
-							.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-
-					em.createNativeQuery(SQLConstant.INSERT_USUARIOS_ROLES_EMPRESAS)
-							.setParameter("idUsuario", usuariosRolesEmpresa.getIdUsuario())
-							.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+						em.createNativeQuery(SQLConstant.INSERT_USUARIOS_ROLES_EMPRESAS)
+								.setParameter("idUsuario", idUsuario)
+								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
+								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
+								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+					
 				}
+			}else {
+				personaRepository.save(personaSave);
+				usuarioRepository.save(usuariosaSave);
 			}
 
 		} catch (Exception e) {
 			em.getTransaction().rollback();
 		}
+
+	}
+
+	/**
+	 * Este metodo permite armar la lista de empresas y roles a paartir de la lista
+	 * de usuarios roles empresa
+	 * 
+	 * @param listUsuRolesEmpresasDTO
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ConfiguracionUsuarioDTO obtenerEmpresasYRoles(List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO)
+			throws BusinessException {
+		// Se consultan los roles empresa usuario asignados al usuario encontrado en la
+		// busqueda
+		ConfiguracionUsuarioDTO configuracionUsuarioDTO = new ConfiguracionUsuarioDTO();
+		try {
+			// Se arman las listas de roles y empresas asociadas al usuario
+			List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
+			List<RolesDTO> rolesUsuarioDTO = new ArrayList<>();
+			for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
+				empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
+				rolesUsuarioDTO.add(consultarRolById(usuaRolEmpresasDTO.getIdRol()));
+
+			}
+			configuracionUsuarioDTO.setPersonasDTO(new PersonasDTO());
+			configuracionUsuarioDTO.setUsuariosDTO(new UsuariosDTO());
+			configuracionUsuarioDTO.setListEmpresasDTO(empresasUsuarioDTO);
+			configuracionUsuarioDTO.setListRolesDTO(rolesUsuarioDTO);
+
+		} catch (Exception e) {
+			throw new BusinessException(e.getMessage());
+		}
+
+		return configuracionUsuarioDTO;
 
 	}
 
