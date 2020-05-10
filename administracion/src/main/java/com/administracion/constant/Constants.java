@@ -19,4 +19,10 @@ public class Constants {
 
 	/** COMA para las sentencias SQL */
 	public static final String COMA = ",";
+
+	/** COMILLA SIMPLES para las sentencias SQL */
+	public static final String COMILLA_SIMPLE = "'";
+
+	/** parentesis de cierre */
+	public static final String PARENT_CIERRE = ")";
 }
