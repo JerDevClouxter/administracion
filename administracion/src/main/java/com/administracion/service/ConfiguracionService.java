@@ -331,17 +331,6 @@ public class ConfiguracionService {
 				for (UsuariosRolesEmpresasDTO usuariosRolesEmpresa : configuracionUsuarioDTO
 						.getListUsuariosRolesEmpresasDTO()) {
 
-//						em.createNativeQuery(SQLConstant.UPDATE_ROLES_EMPRESAS)
-//								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-//								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-//								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-//
-//						em.createNativeQuery(SQLConstant.UPDATE_USUARIOS_ROLES_EMPRESAS)
-//								.setParameter("idUsuario", usuariosRolesEmpresa.getIdUsuario())
-//								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-//								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-//								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-	
 						em.createNativeQuery(SQLConstant.INSERT_ROLES_EMPRESAS)
 								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
 								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
