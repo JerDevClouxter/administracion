@@ -24,8 +24,8 @@ public class RolDTO implements Serializable {
 	/** Descripcion del ROL **/
 	private String descripcion;
 
-	/** Se utiliza para la creacion o edicion del ROL **/
-	private String estado;
+	/** Se utiliza para la creacion o edicion del ROL. true=activo, false=inactivo */
+	private boolean estado;
 
 	/** Son los nombres de las empresas asociadas al ROL, separadas por coma **/
 	private String verEmpresas;
