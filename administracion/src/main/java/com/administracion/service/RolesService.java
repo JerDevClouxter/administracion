@@ -97,8 +97,9 @@ public class RolesService {
 				rol.setId(Long.valueOf(Util.getValue(roles, Numero.ZERO.valueI)));
 				rol.setNombre(Util.getValue(roles, Numero.UNO.valueI));
 				rol.setDescripcion(Util.getValue(roles, Numero.DOS.valueI));
-				rol.setVerEmpresas(Util.getValue(roles, Numero.TRES.valueI));
-				rol.setVerRecursos(Util.getValue(roles, Numero.CUATRO.valueI));
+				rol.setNombreEstado(Util.getValue(roles, Numero.TRES.valueI));
+				rol.setVerEmpresas(Util.getValue(roles, Numero.CUATRO.valueI));
+				rol.setVerRecursos(Util.getValue(roles, Numero.CINCO.valueI));
 				response.agregarRegistro(rol);
 			}
 		}
@@ -123,7 +124,7 @@ public class RolesService {
 					connection, SQLConstant.INSERT_ROLES,
 					ValueSQL.get(rol.getNombre(), Types.VARCHAR),
 					ValueSQL.get(rol.getDescripcion(), Types.VARCHAR),
-					ValueSQL.get(rol.getEstado(), Types.VARCHAR));
+					ValueSQL.get(rol.isEstado() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name(), Types.VARCHAR));
 
 			// contiene los DMLS para ser ejecutado por el BATCH JDBC
 			List<String> dmls = new ArrayList<>();
@@ -197,7 +198,7 @@ public class RolesService {
 						detalle.setId(Long.valueOf(Util.getValue(item, Numero.ZERO.valueI)));
 						detalle.setNombre(Util.getValue(item, Numero.UNO.valueI));
 						detalle.setDescripcion(Util.getValue(item, Numero.DOS.valueI));
-						detalle.setEstado(Util.getValue(item, Numero.TRES.valueI));
+						detalle.setEstado(EstadoEnum.ACTIVO.name().equals(Util.getValue(item, Numero.TRES.valueI)));
 						empresas = Util.getValue(item, Numero.SEIS.valueI);
 						if (!Util.isNull(empresas)) {
 							split = empresas.split(Constants.COMA);
@@ -253,7 +254,7 @@ public class RolesService {
 						SQLConstant.UPDATE_ROLE_INFO_GENERAL,
 						ValueSQL.get(rol.getNombre(), Types.VARCHAR),
 						ValueSQL.get(rol.getDescripcion(), Types.VARCHAR),
-						ValueSQL.get(rol.getEstado(), Types.VARCHAR),
+						ValueSQL.get(rol.isEstado() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name(), Types.VARCHAR),
 						ValueSQL.get(idRol, Types.BIGINT));
 			}
 
@@ -376,7 +377,7 @@ public class RolesService {
 		// se valida la nulalida del nombre, la descripcion y el estado del ROL
 		String nombre = rol.getNombre();
 		String descripcion = rol.getDescripcion();
-		if (Util.isNull(nombre) || Util.isNull(descripcion) || Util.isNull(rol.getEstado())) {
+		if (Util.isNull(nombre) || Util.isNull(descripcion)) {
 			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
 		}
 

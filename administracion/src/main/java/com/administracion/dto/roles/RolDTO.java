@@ -24,8 +24,11 @@ public class RolDTO implements Serializable {
 	/** Descripcion del ROL **/
 	private String descripcion;
 
-	/** Se utiliza para la creacion o edicion del ROL **/
-	private String estado;
+	/** Es el nombre del estado del ROL **/
+	private String nombreEstado;
+
+	/** Se utiliza para la creacion o edicion del ROL. true=activo, false=inactivo */
+	private boolean estado;
 
 	/** Son los nombres de las empresas asociadas al ROL, separadas por coma **/
 	private String verEmpresas;
@@ -99,6 +102,7 @@ public class RolDTO implements Serializable {
 	 */
 	private void addRecurso(Long idRecurso, Long idAccion) {
 		RolRecursoDTO recurso = new RolRecursoDTO();
+		recurso.setPanelRecursoCerrado(true);
 		recurso.setId(idRecurso);
 		recurso.agregarAccion(idAccion);
 		this.recursos.add(recurso);

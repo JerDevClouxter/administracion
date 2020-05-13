@@ -16,6 +16,15 @@ public class RolRecursoDTO implements Serializable {
 	/** Identificador del RECURSO **/
 	private Long id;
 
+	/** Indica si el panel recurso esta cerrado **/
+	private boolean panelRecursoCerrado;
+
+	/** Indica si el recurso es valido */
+	private boolean noValido;
+
+	/** Indica si ya se dio submit para la creacion o edicion de roles */
+	private boolean isSubmit;
+
 	/** Son los ids de las acciones de este recurso **/
 	private List<Long> idAcciones;
 
