@@ -1,5 +1,6 @@
 package com.administracion.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,6 +13,8 @@ import javax.persistence.Query;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.administracion.builder.Builder;
@@ -83,6 +86,14 @@ public class ConfiguracionService {
 	 */
 	@Autowired
 	private IEmpresasRepository empresaRepository;
+	
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
+	
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
 	/**
 	 * Metodo encargado de consultar los tipos de documentos
@@ -300,7 +311,7 @@ public class ConfiguracionService {
 				mapUsuEmpresas.put(usuRolesEmpresasDTO.getIdEmpresa(), usuRolesEmpresasDTO);
 			}
 
-		} 
+		}
 		Collection<UsuariosRolesEmpresasDTO> empresasUsuario = mapUsuEmpresas.values();
 		listUsuRolesEmpresasDTO.addAll(empresasUsuario);
 		return listUsuRolesEmpresasDTO;
@@ -322,28 +333,27 @@ public class ConfiguracionService {
 			Personas personaSave = builderPersona.copy(configuracionUsuarioDTO.getPersonasDTO());
 			Usuarios usuariosaSave = builderUsuario.copy(configuracionUsuarioDTO.getUsuariosDTO());
 			if (configuracionUsuarioDTO.getPersonasDTO().getIdPersona() == null) {
-			personaRepository.save(personaSave);
-			usuarioRepository.save(usuariosaSave);
-			Long idUsuario = personaSave.getIdPersona();
-			usuariosaSave.setIdUsuario(idUsuario);
+				personaRepository.save(personaSave);
+				usuarioRepository.save(usuariosaSave);
+				Long idUsuario = personaSave.getIdPersona();
+				usuariosaSave.setIdUsuario(idUsuario);
 				// Se crear relacion en tabla roles empresa y despues en usuarios roles
 				// empresa
 				for (UsuariosRolesEmpresasDTO usuariosRolesEmpresa : configuracionUsuarioDTO
 						.getListUsuariosRolesEmpresasDTO()) {
 
-						em.createNativeQuery(SQLConstant.INSERT_ROLES_EMPRESAS)
-								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+					em.createNativeQuery(SQLConstant.INSERT_ROLES_EMPRESAS)
+							.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
+							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
+							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
 
-						em.createNativeQuery(SQLConstant.INSERT_USUARIOS_ROLES_EMPRESAS)
-								.setParameter("idUsuario", idUsuario)
-								.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-								.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
-					
+					em.createNativeQuery(SQLConstant.INSERT_USUARIOS_ROLES_EMPRESAS)
+							.setParameter("idUsuario", idUsuario).setParameter("idRol", usuariosRolesEmpresa.getIdRol())
+							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
+							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+
 				}
-			}else {
+			} else {
 				personaRepository.save(personaSave);
 				usuarioRepository.save(usuariosaSave);
 			}
@@ -386,6 +396,25 @@ public class ConfiguracionService {
 		}
 
 		return configuracionUsuarioDTO;
+
+	}
+
+	/**
+	 * Metodo encargado de actualizar la contraseña para ingresar por primera vez al
+	 * sistema
+	 * 
+	 * @param contraseña contraseña actualizada por el usuario
+	 * @throws BusinessException
+	 */
+	public void actContrasPrimerVez(Long idUsuario, String contrasena) throws BusinessException {
+		try {
+			Optional<Usuarios> usuario = usuarioRepository.findById(idUsuario);
+			usuario.get().setClave(passwordEncoder.encode(contrasena));
+			usuario.get().setPrimerIngreso(BigDecimal.ZERO.longValue());
+			usuarioRepository.save(usuario.get());
+		} catch (Exception e) {
+			throw new BusinessException(e.getMessage());
+		}
 
 	}
 
