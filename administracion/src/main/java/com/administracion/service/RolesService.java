@@ -97,8 +97,9 @@ public class RolesService {
 				rol.setId(Long.valueOf(Util.getValue(roles, Numero.ZERO.valueI)));
 				rol.setNombre(Util.getValue(roles, Numero.UNO.valueI));
 				rol.setDescripcion(Util.getValue(roles, Numero.DOS.valueI));
-				rol.setVerEmpresas(Util.getValue(roles, Numero.TRES.valueI));
-				rol.setVerRecursos(Util.getValue(roles, Numero.CUATRO.valueI));
+				rol.setNombreEstado(Util.getValue(roles, Numero.TRES.valueI));
+				rol.setVerEmpresas(Util.getValue(roles, Numero.CUATRO.valueI));
+				rol.setVerRecursos(Util.getValue(roles, Numero.CINCO.valueI));
 				response.agregarRegistro(rol);
 			}
 		}
