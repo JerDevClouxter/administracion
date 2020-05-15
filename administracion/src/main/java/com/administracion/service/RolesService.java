@@ -11,6 +11,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.administracion.constant.Constants;
 import com.administracion.constant.MessagesBussinesKey;
@@ -110,6 +111,7 @@ public class RolesService {
 	 * Servicio que permite crear un ROL en el sistema
 	 * @param rol, DTO que contiene los datos del ROL a crear
 	 */
+	@Transactional
 	public void crearRol(RolDTO rol) throws Exception {
 
 		// se verifica los datos de entrada para la creacion
@@ -222,6 +224,7 @@ public class RolesService {
 	 * Servicio que permite soportar el proceso de negocio para la edicion del ROL
 	 * @param rol, DTO que contiene los datos del ROL a modificar
 	 */
+	@Transactional
 	public void editarRol(RolDTO rol) throws Exception {
 
 		// los datos del ROLE son requerido
@@ -268,17 +271,32 @@ public class RolesService {
 				// se cancelan todas las companias asociadas al ROL
 				dmls.add(new StringBuilder(SQLConstant.CANCELAR_ROLES_EMPRESAS).append(idRol).toString());
 
+				// constantes necesarios para el proceso
+				final String AND_EMPRESA = " AND ID_EMPRESA=";
+				final String WHERE_NOT_EXISTS = " WHERE NOT EXISTS(SELECT * FROM ROLES_EMPRESAS WHERE ID_ROL=";
+
 				// se verifica si hay empresas asociadas al ROL
 				List<Long> empresas = rol.getEmpresas();
 				if (empresas != null && !empresas.isEmpty()) {
 
-					// se construye cada INSERT para asociar las empresas con el ROL
+					// se construye cada DML para asociar las empresas con el ROL
 					for (Long idEmpresa : empresas) {
-						dml = new StringBuilder(SQLConstant.INSERT_EMPRESAS_ROLES);
+
+						// se actualiza esta empresa como ACTIVA
+						dml = new StringBuilder(SQLConstant.ACTIVAR_EMPRESA_ROL);
+						dml.append(idRol);
+						dml.append(AND_EMPRESA).append(idEmpresa);
+						dmls.add(dml.toString());
+
+						// se crear el registro de ROL-EMPRESA solo si no existe
+						dml = new StringBuilder(SQLConstant.INSERT_EMPRESAS_ROLES_EDICION);
 						dml.append(idRol).append(Constants.COMA);
 						dml.append(idEmpresa).append(Constants.COMA);
-						dml.append(Constants.COMILLA_SIMPLE).append(EstadoEnum.ACTIVO.name());
-						dml.append(Constants.COMILLA_SIMPLE).append(Constants.PARENT_CIERRE);
+						dml.append(Constants.COMILLA_SIMPLE).append(EstadoEnum.ACTIVO.name()).append(Constants.COMILLA_SIMPLE);
+						dml.append(WHERE_NOT_EXISTS);
+						dml.append(idRol);
+						dml.append(AND_EMPRESA).append(idEmpresa);
+						dml.append(Constants.PARENT_CIERRE);
 						dmls.add(dml.toString());
 					}
 				}
@@ -287,8 +305,8 @@ public class RolesService {
 			// se verifica si los recursos fueron modificadas
 			if (rol.isRecursosModificado()) {
 
-				// se cancelan todos los recursos asociados al ROL
-				dmls.add(new StringBuilder(SQLConstant.CANCELAR_ROLES_RECURSOS).append(idRol).toString());
+				// se eliminan todos los recursos asociados al ROL
+				dmls.add(new StringBuilder(SQLConstant.DELETE_ROLES_RECURSOS).append(idRol).toString());
 
 				// se construye cada INSERT para asociar los recursos al ROL
 				for (RolRecursoDTO recurso : recursos) {

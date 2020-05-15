@@ -189,7 +189,8 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 			+ "(SELECT STRING_AGG(RE.ID_EMPRESA\\:\\:VARCHAR,',')FROM ROLES_EMPRESAS RE WHERE RE.ID_ROL=R.ID_ROL AND RE.ID_ESTADO='" + EstadoEnum.ACTIVO.name() + "')AS EMPRESAS "
 		+ "FROM ROLES R "
 		+ "LEFT JOIN ROLES_RECURSOS_ACCIONES RRA ON(RRA.ID_ROL=R.ID_ROL AND RRA.ID_ESTADO='" + EstadoEnum.ACTIVO.name() + "')"
-		+ "WHERE R.ID_ROL=? GROUP BY 1,2,3,4,5,6";
+		+ "LEFT JOIN RECURSOS REC ON(REC.ID_RECURSO=RRA.ID_RECURSO)"
+		+ "WHERE R.ID_ROL=? GROUP BY 1,2,3,4,5,6,REC.NOMBRE ORDER BY REC.NOMBRE";
 
 	/** SQL para actualizar la informacion general del ROL */
 	public static final String UPDATE_ROLE_INFO_GENERAL = "UPDATE ROLES SET NOMBRE=?,DESCRIPCION=?,ID_ESTADO=? WHERE ID_ROL=?";
@@ -197,6 +198,12 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 	/** DML para cancelar todas las empresas asociadas a un ROL */
 	public static final String CANCELAR_ROLES_EMPRESAS = "UPDATE ROLES_EMPRESAS SET ID_ESTADO='" + EstadoEnum.CANCELADO.name() + "' WHERE ID_ROL=";
 
-	/** DML para cancelar todos los recursos asociadas a un ROL */
-	public static final String CANCELAR_ROLES_RECURSOS = "UPDATE ROLES_RECURSOS_ACCIONES SET ID_ESTADO='" + EstadoEnum.CANCELADO.name() + "' WHERE ID_ROL=";
+	/** DML para eliminar todos los recursos asociadas a un ROL */
+	public static final String DELETE_ROLES_RECURSOS = "DELETE FROM ROLES_RECURSOS_ACCIONES WHERE ID_ROL=";
+
+	/** DML para activar una empresa asociadas a un ROL */
+	public static final String ACTIVAR_EMPRESA_ROL = "UPDATE ROLES_EMPRESAS SET ID_ESTADO='" + EstadoEnum.ACTIVO.name() + "' WHERE ID_ROL=";
+
+	/** Insert para la tabla ROLES_EMPRESAS para edicion*/
+	public static final String INSERT_EMPRESAS_ROLES_EDICION = "INSERT INTO ROLES_EMPRESAS(ID_ROL,ID_EMPRESA,ID_ESTADO)SELECT ";
 }
