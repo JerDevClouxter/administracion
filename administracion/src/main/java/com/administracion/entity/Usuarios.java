@@ -22,7 +22,7 @@ public class Usuarios implements Serializable {
 	@Id
 	@Column(name = "id_usuario")
 	private Long idUsuario;
-	@Column(name = "nombre_usaurio")
+	@Column(name = "nombre_usuario")
 	private String nombreUsuario;
 	@Column(name = "clave")
 	private String clave;
