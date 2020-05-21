@@ -93,8 +93,7 @@ public class ConfiguracionResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> consultarUsuarioRolesIdUsuario(@RequestParam("idUsuario") String idUsuario) {
 		try {
-			 List<UsuariosRolesEmpresasDTO> consultarUsuarioRolesIdUsuario = this.configuracionService.consultarUsuarioRolesIdUsuario(Long.valueOf(idUsuario));
-			return Util.getResponseSuccessful(this.configuracionService.obtenerEmpresasYRoles(consultarUsuarioRolesIdUsuario));
+			return Util.getResponseSuccessful(this.configuracionService.consultarEmpresasRoles(Long.valueOf(idUsuario)));
 			
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());

@@ -3,9 +3,12 @@ package com.administracion.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -86,10 +89,10 @@ public class ConfiguracionService {
 	 */
 	@Autowired
 	private IEmpresasRepository empresaRepository;
-	
+
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
-	
+
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -230,15 +233,6 @@ public class ConfiguracionService {
 				List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = consultarUsuarioRolesIdUsuario(idUsuario);
 				if (listUsuRolesEmpresasDTO != null && !listUsuRolesEmpresasDTO.isEmpty()) {
 					ConfiguracionUsuarioDTO empresasYRoles = obtenerEmpresasYRoles(listUsuRolesEmpresasDTO);
-//					// Se arman las listas de roles y empresas asociadas al usuario
-//					List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
-//					List<RolesDTO> rolesUsuarioDTO = new ArrayList<>();
-//					for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
-//						empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
-//						rolesUsuarioDTO.add(consultarRolById(usuaRolEmpresasDTO.getIdRol()));
-//
-//					}
-
 					configUsuarioDTO.setListEmpresasDTO(empresasYRoles.getListEmpresasDTO());
 					configUsuarioDTO.setListRolesDTO(empresasYRoles.getListRolesDTO());
 
@@ -334,24 +328,24 @@ public class ConfiguracionService {
 			Usuarios usuariosaSave = builderUsuario.copy(configuracionUsuarioDTO.getUsuariosDTO());
 			if (configuracionUsuarioDTO.getPersonasDTO().getIdPersona() == null) {
 				personaRepository.save(personaSave);
-				usuarioRepository.save(usuariosaSave);
 				Long idUsuario = personaSave.getIdPersona();
 				usuariosaSave.setIdUsuario(idUsuario);
+				usuariosaSave.setClave(crearContrGenerica(personaSave));
+				usuariosaSave.setPrimerIngreso(BigDecimal.ONE.longValue());
+				usuarioRepository.save(usuariosaSave);
+
 				// Se crear relacion en tabla roles empresa y despues en usuarios roles
 				// empresa
-				for (UsuariosRolesEmpresasDTO usuariosRolesEmpresa : configuracionUsuarioDTO
-						.getListUsuariosRolesEmpresasDTO()) {
+				for (EmpresasDTO empresaRoles : configuracionUsuarioDTO.getListEmpresasDTO()) {
 
-					em.createNativeQuery(SQLConstant.INSERT_ROLES_EMPRESAS)
-							.setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+					for (Long idRol : empresaRoles.getIdRoles()) {
 
-					em.createNativeQuery(SQLConstant.INSERT_USUARIOS_ROLES_EMPRESAS)
-							.setParameter("idUsuario", idUsuario).setParameter("idRol", usuariosRolesEmpresa.getIdRol())
-							.setParameter("idEmpresa", usuariosRolesEmpresa.getIdEmpresa())
-							.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
+						em.createNativeQuery(SQLConstant.INSERT_USUARIOS_ROLES_EMPRESAS)
+								.setParameter("idUsuario", idUsuario).setParameter("idRol", idRol)
+								.setParameter("idEmpresa", empresaRoles.getIdEmpresa())
+								.setParameter("idEstado", EstadoEnum.ACTIVO.name()).executeUpdate();
 
+					}
 				}
 			} else {
 				personaRepository.save(personaSave);
@@ -365,7 +359,7 @@ public class ConfiguracionService {
 	}
 
 	/**
-	 * Este metodo permite armar la lista de empresas y roles a paartir de la lista
+	 * Este metodo permite armar la lista de empresas y roles a partir de la lista
 	 * de usuarios roles empresa
 	 * 
 	 * @param listUsuRolesEmpresasDTO
@@ -381,9 +375,10 @@ public class ConfiguracionService {
 			// Se arman las listas de roles y empresas asociadas al usuario
 			List<EmpresasDTO> empresasUsuarioDTO = new ArrayList<>();
 			List<RolesDTO> rolesUsuarioDTO = new ArrayList<>();
+			List<Long> idRoles = new ArrayList<>();
 			for (UsuariosRolesEmpresasDTO usuaRolEmpresasDTO : listUsuRolesEmpresasDTO) {
 				empresasUsuarioDTO.add(consultarEmpresaById(usuaRolEmpresasDTO.getIdEmpresa()));
-				rolesUsuarioDTO.add(consultarRolById(usuaRolEmpresasDTO.getIdRol()));
+				idRoles.add(usuaRolEmpresasDTO.getIdRol());
 
 			}
 			configuracionUsuarioDTO.setPersonasDTO(new PersonasDTO());
@@ -418,4 +413,58 @@ public class ConfiguracionService {
 
 	}
 
+	/**
+	 * Genera la clave inicial generica de un usuario concatenando primera letra del
+	 * primer nombre primerapellido numero de documento
+	 * 
+	 * @param persona
+	 * @return
+	 */
+	private String crearContrGenerica(Personas persona) {
+		String contrasena = "";
+		contrasena = contrasena.concat(persona.getPrimerNombre().substring(0, 1).toUpperCase()).concat(persona
+				.getPrimerApellido().toUpperCase().concat(persona.getNumeroDocumento().substring(0, 2).toUpperCase()));
+
+		return contrasena;
+
+	}
+
+	/**
+	 * Metodo encargado de consultar los usuarios roles empresa relacionados a el
+	 * idUsuario
+	 * 
+	 * @param idUSuario
+	 * @return List<UsuariosRolesEmpresasDTO> lista de relacion entre usuarios roles
+	 *         empresa
+	 * @throws BusinessException
+	 */
+	public List<EmpresasDTO> consultarEmpresasRoles(Long idUsuario) throws BusinessException {
+		Query q = em.createNativeQuery(SQLConstant.SELECT_ROLES_EMPRESAS_ID_USU).setParameter("idUSuario", idUsuario)
+				.setParameter("idEstado", EstadoEnum.ACTIVO.name());
+		List<Object[]> result = q.getResultList();
+		List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = new ArrayList<>();
+		//EmpresasDTO empresaRol = new EmpresasDTO();
+		List<EmpresasDTO> listEmpresaRol = new ArrayList<>();
+		if (result != null && !result.isEmpty()) {
+			for (Object[] data : result) {
+				UsuariosRolesEmpresasDTO usuRolesEmpresasDTO = new UsuariosRolesEmpresasDTO();
+				usuRolesEmpresasDTO.setIdRol(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				usuRolesEmpresasDTO.setIdEmpresa(Long.valueOf(Util.getValue(data, Numero.UNO.valueI)));
+				listUsuRolesEmpresasDTO.add(usuRolesEmpresasDTO);
+			}
+			Collection<List<UsuariosRolesEmpresasDTO>> agruparRolesPorUsu = listUsuRolesEmpresasDTO.stream()
+					.collect(Collectors.groupingBy(UsuariosRolesEmpresasDTO::getIdEmpresa)).values();
+			for (List<UsuariosRolesEmpresasDTO> listUsuaAgru : agruparRolesPorUsu) {
+				List<Long> idRoles = new ArrayList<>();
+				EmpresasDTO empresaRol = new EmpresasDTO();
+				for (UsuariosRolesEmpresasDTO usuariosRolesEmpresasDTO : listUsuaAgru) {
+					idRoles.add(usuariosRolesEmpresasDTO.getIdRol());
+				}
+				empresaRol.setIdEmpresa(listUsuaAgru.iterator().next().getIdEmpresa());
+				empresaRol.setIdRoles(idRoles);
+				listEmpresaRol.add(empresaRol);
+			}
+		}
+		return listEmpresaRol;
+	}
 }

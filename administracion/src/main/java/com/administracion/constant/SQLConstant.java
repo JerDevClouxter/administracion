@@ -206,4 +206,8 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 
 	/** Insert para la tabla ROLES_EMPRESAS para edicion*/
 	public static final String INSERT_EMPRESAS_ROLES_EDICION = "INSERT INTO ROLES_EMPRESAS(ID_ROL,ID_EMPRESA,ID_ESTADO)SELECT ";
+
+	/** Select para roles asociados a una empresa*/
+	public static final String SELECT_ROLES_EMPRESAS_ID_USU = "SELECT ID_ROL, ID_EMPRESA FROM USUARIOS_ROLES_EMPRESAS WHERE ID_USUARIO = :idUSuario AND ID_ESTADO = :idEstado";
+
 }
