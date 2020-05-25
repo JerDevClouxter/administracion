@@ -28,5 +28,7 @@ public class Usuarios implements Serializable {
 	private String clave;
 	@Column(name = "id_estado")
 	private String idEstado;
+	@Column(name = "primer_ingreso")
+	private Long primerIngreso;
 
 }

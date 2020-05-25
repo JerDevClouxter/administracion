@@ -1,6 +1,7 @@
 package com.administracion.dto.configurar;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.Data;
 
@@ -15,5 +16,6 @@ public class EmpresasDTO implements Serializable {
 	private String direccion;
 	private String telefono;
 	private String representanteLegal;
+	private List<Long> idRoles;
 
 }
