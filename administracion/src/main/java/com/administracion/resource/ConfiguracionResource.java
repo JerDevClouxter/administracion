@@ -27,15 +27,15 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @RequestMapping("/configuracionUsuario")
 public class ConfiguracionResource {
-	
-	
+
 	@Autowired
 	private ConfiguracionService configuracionService;
-	
+
 	/**
 	 * metodo encargado de buscar un usuario por tipo o numero de documento
 	 * 
-	 * @return ConfiguracionUsuarioDTO información de un usuario registrado en el sistema
+	 * @return ConfiguracionUsuarioDTO información de un usuario registrado en el
+	 *         sistema
 	 * @throws BusinessException
 	 */
 	@GetMapping(path = "/consultarUsuarioTipDocNum", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -44,25 +44,25 @@ public class ConfiguracionResource {
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
-	public ResponseEntity<Object> consultarUsuarioTipDocNum(@RequestParam("tipoDocumento") String tipoDocumento, @RequestParam("numeroDocumento") String numeroDocumento) {
+	public ResponseEntity<Object> consultarUsuarioTipDocNum(@RequestParam("tipoDocumento") String tipoDocumento,
+			@RequestParam("numeroDocumento") String numeroDocumento) {
 		try {
-			return Util.getResponseSuccessful(this.configuracionService.consultarUsuarioTipDocNum(tipoDocumento, numeroDocumento));
+			return Util.getResponseSuccessful(
+					this.configuracionService.consultarUsuarioTipDocNum(tipoDocumento, numeroDocumento));
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".consultarUsuarioTipDocNum", e.getMessage());
+			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".consultarUsuarioTipDocNum",
+					e.getMessage());
 		}
 	}
-	
-	
+
 	/**
 	 * Metodo encargado de crear o editar la información de un usuario
 	 * 
 	 * @param configuracionUsuario
 	 */
-	@PostMapping(path = "/crearEditarUsuario",
-			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PostMapping(path = "/crearEditarUsuario", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Almacena o edita el usuario", notes = "Operación para crear o editar un usuario en el sistema")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
@@ -70,15 +70,15 @@ public class ConfiguracionResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> crearEditarUsuario(@RequestBody ConfiguracionUsuarioDTO configuracionUsuario) {
 		try {
-			this.configuracionService.crearEditarUsuario(configuracionUsuario);
-			return Util.getResponseOk();
-		}catch (BusinessException e) {
+			return Util.getResponseSuccessful(this.configuracionService.crearEditarUsuario(configuracionUsuario));
+		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".crearEditarUsuario ", e.getMessage());
+			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".crearEditarUsuario ",
+					e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Metodo encargado de consultar las empresas y roles asociadas a un usuario
 	 * 
@@ -93,23 +93,23 @@ public class ConfiguracionResource {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<Object> consultarUsuarioRolesIdUsuario(@RequestParam("idUsuario") String idUsuario) {
 		try {
-			return Util.getResponseSuccessful(this.configuracionService.consultarEmpresasRoles(Long.valueOf(idUsuario)));
-			
+			return Util
+					.getResponseSuccessful(this.configuracionService.consultarEmpresasRoles(Long.valueOf(idUsuario)));
+
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".consultarUsuarioRolesIdUsuario", e.getMessage());
+			return Util.getResponseError(
+					ConfiguracionResource.class.getSimpleName() + ".consultarUsuarioRolesIdUsuario", e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Metodo encargado de crear o editar la información de un usuario
 	 * 
 	 * @param configuracionUsuario
 	 */
-	@PutMapping(path = "/actContrasPrimerVez",
-			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PutMapping(path = "/actContrasPrimerVez", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Almacena o edita el usuario", notes = "Operación para crear o editar un usuario en el sistema")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
@@ -119,10 +119,11 @@ public class ConfiguracionResource {
 		try {
 			this.configuracionService.actContrasPrimerVez(usuarioDTO.getIdUsuario(), usuarioDTO.getClave());
 			return Util.getResponseOk();
-		}catch (BusinessException e) {
+		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".crearEditarUsuario ", e.getMessage());
+			return Util.getResponseError(ConfiguracionResource.class.getSimpleName() + ".crearEditarUsuario ",
+					e.getMessage());
 		}
 	}
 }

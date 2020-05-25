@@ -196,7 +196,6 @@ public class ConfiguracionService {
 			throws BusinessException {
 		ConfiguracionUsuarioDTO configUsuarioDTO = new ConfiguracionUsuarioDTO();
 
-		try {
 			Long idUsuario = null;
 			Query q = em.createNativeQuery(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC)
 					.setParameter("tipoDocumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
@@ -227,15 +226,11 @@ public class ConfiguracionService {
 					configUsuarioDTO.setPersonasDTO(personaDTO);
 					configUsuarioDTO.setUsuariosDTO(usuarioDTO);
 				}
-
+				List<EmpresasDTO> empresasRolesUsuario = consultarEmpresasRoles(idUsuario);
 				// Se consultan los roles empresa usuario asignados al usuario encontrado en la
 				// busqueda
-				List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = consultarUsuarioRolesIdUsuario(idUsuario);
-				if (listUsuRolesEmpresasDTO != null && !listUsuRolesEmpresasDTO.isEmpty()) {
-					ConfiguracionUsuarioDTO empresasYRoles = obtenerEmpresasYRoles(listUsuRolesEmpresasDTO);
-					configUsuarioDTO.setListEmpresasDTO(empresasYRoles.getListEmpresasDTO());
-					configUsuarioDTO.setListRolesDTO(empresasYRoles.getListRolesDTO());
-
+				if (empresasRolesUsuario != null && !empresasRolesUsuario.isEmpty()) {
+					configUsuarioDTO.setListEmpresasDTO(empresasRolesUsuario);
 				} else {
 					throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
 				}
@@ -243,9 +238,6 @@ public class ConfiguracionService {
 			} else {
 				throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		return configUsuarioDTO;
 	}
@@ -320,7 +312,7 @@ public class ConfiguracionService {
 	 * @throws BusinessException
 	 */
 	@Transactional
-	public void crearEditarUsuario(ConfiguracionUsuarioDTO configuracionUsuarioDTO) throws BusinessException {
+	public ConfiguracionUsuarioDTO crearEditarUsuario(ConfiguracionUsuarioDTO configuracionUsuarioDTO) throws BusinessException {
 		try {
 			Builder<UsuariosDTO, Usuarios> builderUsuario = new Builder<>(Usuarios.class);
 			Builder<PersonasDTO, Personas> builderPersona = new Builder<>(Personas.class);
@@ -330,7 +322,9 @@ public class ConfiguracionService {
 				personaRepository.save(personaSave);
 				Long idUsuario = personaSave.getIdPersona();
 				usuariosaSave.setIdUsuario(idUsuario);
-				usuariosaSave.setClave(crearContrGenerica(personaSave));
+				String claveInicialGenerica = crearContrGenerica(personaSave);
+				configuracionUsuarioDTO.getUsuariosDTO().setClave(claveInicialGenerica);
+				usuariosaSave.setClave(passwordEncoder.encode(claveInicialGenerica));
 				usuariosaSave.setPrimerIngreso(BigDecimal.ONE.longValue());
 				usuarioRepository.save(usuariosaSave);
 
@@ -348,6 +342,7 @@ public class ConfiguracionService {
 					}
 				}
 			} else {
+				usuariosaSave.setPrimerIngreso(BigDecimal.ZERO.longValue());
 				personaRepository.save(personaSave);
 				usuarioRepository.save(usuariosaSave);
 			}
@@ -355,6 +350,7 @@ public class ConfiguracionService {
 		} catch (Exception e) {
 			em.getTransaction().rollback();
 		}
+		return configuracionUsuarioDTO;
 
 	}
 
@@ -430,41 +426,43 @@ public class ConfiguracionService {
 	}
 
 	/**
-	 * Metodo encargado de consultar los usuarios roles empresa relacionados a el
-	 * idUsuario
+	 * Metodo encargado de consultar las empresas con sus roles asignados
 	 * 
 	 * @param idUSuario
-	 * @return List<UsuariosRolesEmpresasDTO> lista de relacion entre usuarios roles
-	 *         empresa
+	 * @return List<EmpresasDTO> lista de relacion entre empresas y roles
 	 * @throws BusinessException
 	 */
 	public List<EmpresasDTO> consultarEmpresasRoles(Long idUsuario) throws BusinessException {
 		Query q = em.createNativeQuery(SQLConstant.SELECT_ROLES_EMPRESAS_ID_USU).setParameter("idUSuario", idUsuario)
 				.setParameter("idEstado", EstadoEnum.ACTIVO.name());
 		List<Object[]> result = q.getResultList();
-		List<UsuariosRolesEmpresasDTO> listUsuRolesEmpresasDTO = new ArrayList<>();
-		//EmpresasDTO empresaRol = new EmpresasDTO();
-		List<EmpresasDTO> listEmpresaRol = new ArrayList<>();
+		List<EmpresasDTO> listUsuEmpresasDTO = new ArrayList<>();
+		List<EmpresasDTO> listEmpresaRolFinal = new ArrayList<>();
 		if (result != null && !result.isEmpty()) {
 			for (Object[] data : result) {
-				UsuariosRolesEmpresasDTO usuRolesEmpresasDTO = new UsuariosRolesEmpresasDTO();
-				usuRolesEmpresasDTO.setIdRol(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
-				usuRolesEmpresasDTO.setIdEmpresa(Long.valueOf(Util.getValue(data, Numero.UNO.valueI)));
-				listUsuRolesEmpresasDTO.add(usuRolesEmpresasDTO);
+				EmpresasDTO empresaRoll = new EmpresasDTO();
+				List<Long> idRol = new ArrayList<>();
+				idRol.add(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				empresaRoll.setIdRoles(idRol);
+				empresaRoll.setIdEmpresa(Long.valueOf(Util.getValue(data, Numero.UNO.valueI)));
+				empresaRoll.setRazonSocial(Util.getValue(data, Numero.DOS.valueI));
+				listUsuEmpresasDTO.add(empresaRoll);
 			}
-			Collection<List<UsuariosRolesEmpresasDTO>> agruparRolesPorUsu = listUsuRolesEmpresasDTO.stream()
-					.collect(Collectors.groupingBy(UsuariosRolesEmpresasDTO::getIdEmpresa)).values();
-			for (List<UsuariosRolesEmpresasDTO> listUsuaAgru : agruparRolesPorUsu) {
+			
+			Collection<List<EmpresasDTO>> agruparRolesEmpr = listUsuEmpresasDTO.stream()
+					.collect(Collectors.groupingBy(EmpresasDTO::getIdEmpresa)).values();
+			for (List<EmpresasDTO> listUsuaEmp : agruparRolesEmpr) {
 				List<Long> idRoles = new ArrayList<>();
 				EmpresasDTO empresaRol = new EmpresasDTO();
-				for (UsuariosRolesEmpresasDTO usuariosRolesEmpresasDTO : listUsuaAgru) {
-					idRoles.add(usuariosRolesEmpresasDTO.getIdRol());
+				for (EmpresasDTO usuariosRolesEmpresasDTO : listUsuaEmp) {
+					idRoles.add(usuariosRolesEmpresasDTO.getIdRoles().iterator().next());
 				}
-				empresaRol.setIdEmpresa(listUsuaAgru.iterator().next().getIdEmpresa());
+				empresaRol.setIdEmpresa(listUsuaEmp.iterator().next().getIdEmpresa());
 				empresaRol.setIdRoles(idRoles);
-				listEmpresaRol.add(empresaRol);
+				empresaRol.setRazonSocial(listUsuaEmp.iterator().next().getRazonSocial());
+				listEmpresaRolFinal.add(empresaRol);
 			}
 		}
-		return listEmpresaRol;
+		return listEmpresaRolFinal;
 	}
 }
