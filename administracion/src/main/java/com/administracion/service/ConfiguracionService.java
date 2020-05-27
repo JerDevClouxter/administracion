@@ -215,7 +215,7 @@ public class ConfiguracionService {
 					personaDTO.setTelefono(Util.getValue(data, Numero.OCHO.valueI));
 					personaDTO.setCelular(Util.getValue(data, Numero.NUEVE.valueI));
 					personaDTO.setCorreoElectronico(Util.getValue(data, Numero.DIEZ.valueI));
-					personaDTO.setEstrato(Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)));
+					personaDTO.setEstrato(Util.getValue(data, Numero.ONCE.valueI) != null ? Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)): null);
 
 					UsuariosDTO usuarioDTO = new UsuariosDTO();
 					usuarioDTO.setIdUsuario(idUsuario);
