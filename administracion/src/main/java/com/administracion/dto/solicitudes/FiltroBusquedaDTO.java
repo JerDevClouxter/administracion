@@ -8,8 +8,8 @@ import com.administracion.dto.transversal.PaginadorDTO;
 import lombok.Data;
 
 /**
- * DTO que contiene los atributos para los filtros de
- * busqueda de las solicitudes realizadas en el sistema
+ * DTO que contiene los atributos para los filtros de busqueda de las
+ * solicitudes realizadas en el sistema
  */
 @Data
 public class FiltroBusquedaDTO implements Serializable {
@@ -27,9 +27,15 @@ public class FiltroBusquedaDTO implements Serializable {
 	/** filtro por identificador de la empresa **/
 	private Long idEmpresa;
 
-	/** filtro por estado, tipo Boolean dado que puede llegar 3 valores**/
+	/** filtro por estado, tipo Boolean dado que puede llegar 3 valores **/
 	private Boolean estado;
 
 	/** filtro por nombre **/
 	private String nombre;
+
+	/** filtro por identificador del departamento **/
+	private Long idDepartamento;
+
+	/** filtro por identificador de la ciudad **/
+	private Long idCiudad;
 }
