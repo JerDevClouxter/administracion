@@ -45,11 +45,11 @@ public class DomiciliosResource {
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error")})
-	public ResponseEntity<Object> getValores(@RequestBody FiltroBusquedaDTO filtro) {
+	public ResponseEntity<Object> getDomiciliosValores(@RequestBody FiltroBusquedaDTO filtro) {
 		try {
-			return Util.getResponseSuccessful(this.service.getValores(filtro));
+			return Util.getResponseSuccessful(this.service.getDomiciliosValores(filtro));
 		} catch (Exception e) {
-			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".getValores ", e.getMessage());
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".getDomiciliosValores ", e.getMessage());
 		}
 	}
 
@@ -66,17 +66,17 @@ public class DomiciliosResource {
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error")})
-	public ResponseEntity<Object> crearValor(@RequestBody DomicilioValorDTO valor) {
+	public ResponseEntity<Object> crearDomicilioValor(@RequestBody DomicilioValorDTO valor) {
 		try {
 			// se procede a crear el VALOR
-			this.service.crearValor(valor);
+			this.service.crearDomicilioValor(valor);
 
 			// si llega a este punto es porque la creacion se ejecuto sin problemas
 			return Util.getResponseOk();
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".crearValor ", e.getMessage());
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".crearDomicilioValor ", e.getMessage());
 		}
 	}
 
@@ -93,17 +93,17 @@ public class DomiciliosResource {
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error")})
-	public ResponseEntity<Object> editarValor(@RequestBody DomicilioValorDTO valor) {
+	public ResponseEntity<Object> editarDomicilioValor(@RequestBody DomicilioValorDTO valor) {
 		try {
 			// se procede a editar el VALOR
-			this.service.editarValor(valor);
+			this.service.editarDomicilioValor(valor);
 
 			// si llega a este punto es porque la edicion se ejecuto sin problemas
 			return Util.getResponseOk();
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
-			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".editarValor ", e.getMessage());
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".editarDomicilioValor ", e.getMessage());
 		}
 	}
 }

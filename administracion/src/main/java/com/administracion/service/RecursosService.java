@@ -148,7 +148,7 @@ public class RecursosService {
 	@Transactional
 	public void editarRecurso(RecursoDTO recurso) throws Exception {
 
-		// se verifica los datos de entrada para la creacion
+		// se verifica los datos de entrada para la edicion
 		isDatosValidosRecurso(recurso, true);
 
 		// se obtiene la conection para trabajar con JDBC

@@ -40,5 +40,8 @@ public class DomicilioValorDTO implements Serializable {
 	private BigDecimal valor;
 
 	/** Estado en la que se encuentra el valor **/
-	private String estado;
+	private String idEstado;
+
+	/** Se utiliza para la creacion o edicion del valor */
+	private boolean estado;	
 }

@@ -1,5 +1,6 @@
 package com.administracion.jdbc;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -242,6 +243,10 @@ public class UtilJDBC {
 
 			case Types.BLOB:
 				pst.setBytes(posicion, (byte[]) valor.getValor());
+				break;
+
+			case Types.DECIMAL:
+				pst.setBigDecimal(posicion, (BigDecimal) valor.getValor());
 				break;
 		}
 	}

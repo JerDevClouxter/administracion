@@ -2,6 +2,8 @@ package com.administracion.service;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +14,7 @@ import javax.persistence.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
 import com.administracion.dto.domicilios.DomicilioValorDTO;
@@ -20,6 +23,9 @@ import com.administracion.dto.transversal.PaginadorDTO;
 import com.administracion.dto.transversal.PaginadorResponseDTO;
 import com.administracion.enums.EstadoEnum;
 import com.administracion.enums.Numero;
+import com.administracion.jdbc.UtilJDBC;
+import com.administracion.jdbc.ValueSQL;
+import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
 
 /**
@@ -40,7 +46,7 @@ public class DomiciliosService {
 	 * @param filtro, DTO que contiene los valores del filtro de busqueda
 	 * @return DTO con la lista de valores domicilios parametrizados en el sistema
 	 */
-	public PaginadorResponseDTO getValores(FiltroBusquedaDTO filtro) throws Exception {
+	public PaginadorResponseDTO getDomiciliosValores(FiltroBusquedaDTO filtro) throws Exception {
 
 		// se utiliza para encapsular la respuesta de esta peticion
 		PaginadorResponseDTO response = new PaginadorResponseDTO();
@@ -86,18 +92,21 @@ public class DomiciliosService {
 
 			// se recorre cada valor
 			DomicilioValorDTO domicilioValor;
+			String idLocalidad;
 			for (Object[] valores : result) {
 				domicilioValor = new DomicilioValorDTO();
 				domicilioValor.setId(Long.valueOf(Util.getValue(valores, Numero.ZERO.valueI)));
 				domicilioValor.setZona(Util.getValue(valores, Numero.UNO.valueI));
 				domicilioValor.setValor((BigDecimal) valores[Numero.DOS.valueI]);
-				domicilioValor.setEstado(Util.getValue(valores, Numero.TRES.valueI));
-				domicilioValor.setIdLocalidad(Long.valueOf(Util.getValue(valores, Numero.CUATRO.valueI)));
+				domicilioValor.setIdEstado(Util.getValue(valores, Numero.TRES.valueI));
+				idLocalidad = Util.getValue(valores, Numero.CUATRO.valueI);
+				domicilioValor.setIdLocalidad(idLocalidad != null ? Long.valueOf(idLocalidad) : null);
 				domicilioValor.setLocalidad(Util.getValue(valores, Numero.CINCO.valueI));
 				domicilioValor.setIdCiudad(Long.valueOf(Util.getValue(valores, Numero.SEIS.valueI)));
 				domicilioValor.setCiudad(Util.getValue(valores, Numero.SIETE.valueI));
 				domicilioValor.setIdDepartamento(Long.valueOf(Util.getValue(valores, Numero.OCHO.valueI)));
 				domicilioValor.setDepartamento(Util.getValue(valores, Numero.NUEVE.valueI));
+				domicilioValor.setEstado(EstadoEnum.ACTIVO.name().equals(Util.getValue(valores, Numero.DIEZ.valueI)));
 				response.agregarRegistro(domicilioValor);
 			}
 		}
@@ -109,7 +118,25 @@ public class DomiciliosService {
 	 * @param valor, DTO que contiene los datos del VALOR a crear
 	 */
 	@Transactional
-	public void crearValor(DomicilioValorDTO valor) throws Exception {
+	public void crearDomicilioValor(DomicilioValorDTO valor) throws Exception {
+
+		// se verifica los datos de entrada para la creacion
+		isDatosValidosDomicilioValor(valor, false);
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DOMICILIOS_VALORES,
+					ValueSQL.get(valor.getIdLocalidad(), Types.BIGINT),
+					ValueSQL.get(valor.getIdCiudad(), Types.BIGINT),
+					ValueSQL.get(valor.getZona(), Types.VARCHAR),
+					ValueSQL.get(valor.getValor(), Types.DECIMAL),
+					ValueSQL.get(valor.isEstado() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name(), Types.VARCHAR));
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
 	}
 
 	/**
@@ -117,7 +144,26 @@ public class DomiciliosService {
 	 * @param valor, DTO que contiene los datos del VALOR a editar
 	 */
 	@Transactional
-	public void editarValor(DomicilioValorDTO valor) throws Exception {
+	public void editarDomicilioValor(DomicilioValorDTO valor) throws Exception {
+
+		// se verifica los datos de entrada para la edicion
+		isDatosValidosDomicilioValor(valor, true);
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			utilJDBC.insertUpdate(connection, SQLConstant.UPDATE_DOMICILIOS_VALORES,
+					ValueSQL.get(valor.getIdLocalidad(), Types.BIGINT),
+					ValueSQL.get(valor.getIdCiudad(), Types.BIGINT),
+					ValueSQL.get(valor.getZona(), Types.VARCHAR),
+					ValueSQL.get(valor.getValor(), Types.DECIMAL),
+					ValueSQL.get(valor.isEstado() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name(), Types.VARCHAR),
+					ValueSQL.get(valor.getId(), Types.BIGINT));
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
 	}
 
 	/**
@@ -150,6 +196,46 @@ public class DomiciliosService {
 			sql.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
 			sql.append("CI.ID_CIUDAD=?");
 			parametros.add(idCiudad);
+		}
+	}
+
+	/**
+	 * Verifica los datos de entrada para la creacion o edicion de los valores domicilio
+	 */
+	private void isDatosValidosDomicilioValor(DomicilioValorDTO valor, boolean isEdicion) throws Exception {
+
+		// los datos del VALOR son requerido
+		if (valor == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se verifica cada valor
+		Long idValor = valor.getId();
+		Long idLocalidad = valor.getIdLocalidad();
+		Long idCiudad = valor.getIdCiudad();
+		String zona = valor.getZona();
+		if (valor.getValor() == null ||
+			idCiudad == null ||
+			Util.isNull(zona) ||
+			(isEdicion && idValor == null)) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// no puede existir dos domicilios valores para la misma localidad o ciudad
+		String sqlCount = SQLConstant.COUNT_DOMICILIOS_VALORES_CIUDAD;
+		Long idFiltro = idCiudad;
+		if (idLocalidad != null) {
+			sqlCount = SQLConstant.COUNT_DOMICILIOS_VALORES_LOCALIDAD;
+			idFiltro = idLocalidad;
+		}
+		Query qcount = this.em.createNativeQuery(isEdicion ? (sqlCount + " AND ID_VALOR<>?") : sqlCount);
+		qcount.setParameter(Numero.UNO.valueI, idFiltro);
+		qcount.setParameter(Numero.DOS.valueI, zona);
+		if (isEdicion) {
+			qcount.setParameter(Numero.TRES.valueI, idValor);
+		}
+		if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
+			throw new BusinessException(MessagesBussinesKey.KEY_LOCALIDAD_DOMICILIO_VALOR_YA_EXISTE.value);
 		}
 	}
 }
