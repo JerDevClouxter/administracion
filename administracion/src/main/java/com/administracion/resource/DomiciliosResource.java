@@ -106,4 +106,28 @@ public class DomiciliosResource {
 			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".editarDomicilioValor ", e.getMessage());
 		}
 	}
+
+	/**
+	 * Servicio que soporta el proceso de negocio para obtener
+	 * los DELIVERIES parametrizados en el sistema
+	 *
+	 * @param filtro, DTO que contiene los valores del filtro de busqueda
+	 * @return DTO con la lista de deliveries parametrizados en el sistema
+	 */
+	@PostMapping(path = "/getDeliveries",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Consultar deliveries del sistema", notes = "Obtiene los deliveries del sistema")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> getDeliveries(@RequestBody FiltroBusquedaDTO filtro) {
+		try {
+			return Util.getResponseSuccessful(this.service.getDeliveries(filtro));
+		} catch (Exception e) {
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".getDeliveries ", e.getMessage());
+		}
+	}
 }

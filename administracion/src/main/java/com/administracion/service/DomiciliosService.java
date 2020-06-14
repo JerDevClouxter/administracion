@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
+import com.administracion.dto.domicilios.DeliveryDTO;
 import com.administracion.dto.domicilios.DomicilioValorDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.dto.transversal.PaginadorDTO;
@@ -167,6 +168,72 @@ public class DomiciliosService {
 	}
 
 	/**
+	 * Servicio que soporta el proceso de negocio para obtener
+	 * los DELIVERIES parametrizados en el sistema
+	 *
+	 * @param filtro, DTO que contiene los valores del filtro de busqueda
+	 * @return DTO con la lista de deliveries parametrizados en el sistema
+	 */
+	public PaginadorResponseDTO getDeliveries(FiltroBusquedaDTO filtro) throws Exception {
+
+		// se utiliza para encapsular la respuesta de esta peticion
+		PaginadorResponseDTO response = new PaginadorResponseDTO();
+
+		// se obtiene el from de la consulta
+		StringBuilder sql = new StringBuilder(SQLConstant.SQL_GET_DELIVERIES);
+
+		// contiene los valores de los parametros del los filtros
+		ArrayList<Object> parametros = new ArrayList<>();
+
+		// se configura los filtros de busqueda ingresados
+		setFiltrosBusquedaDelivery(sql, parametros, filtro);
+
+		// se ordena la consulta
+		sql.append(SQLConstant.ORDER_DELIVERIES);
+
+		// se utiliza para obtener los datos del paginador
+		PaginadorDTO paginador = filtro.getPaginador();
+
+		// se valida si se debe contar el total de los registros
+		response.setCantidadTotal(paginador.getCantidadTotal());
+		if (response.getCantidadTotal() == null) {
+
+			// se configura el query con los valores de los filtros
+			Query qcount = this.em.createNativeQuery(SQLTransversal.getSQLCountTbl(sql.toString()));
+			Util.setParameters(qcount, parametros);
+
+			// se configura la cantidad total de acuerdo al filtro de busqueda
+			response.setCantidadTotal(((BigInteger) qcount.getSingleResult()).longValue());
+		}
+
+		// solo se consultan los registros solo si existen de acuerdo al filtro
+		if (response.getCantidadTotal() != null &&
+			!response.getCantidadTotal().equals(Numero.ZERO.valueL)) {
+
+			// se configura la paginacion de la consulta
+			SQLTransversal.getSQLPaginator(paginador.getSkip(), paginador.getRowsPage(), sql);
+
+			// se configura el query con los valores de los filtros y se obtiene los datos
+			Query query = this.em.createNativeQuery(sql.toString());
+			Util.setParameters(query, parametros);
+			List<Object[]> result = query.getResultList();
+
+			// se recorre cada delivery
+			DeliveryDTO delivery;
+			for (Object[] valores : result) {
+				delivery = new DeliveryDTO();
+				delivery.setId(Long.valueOf(Util.getValue(valores, Numero.ZERO.valueI)));
+				delivery.setNombre(Util.getValue(valores, Numero.UNO.valueI));
+				delivery.setCorreo(Util.getValue(valores, Numero.DOS.valueI));
+				delivery.setTelefono(Util.getValue(valores, Numero.TRES.valueI));
+				delivery.setEstado(Util.getValue(valores, Numero.CUATRO.valueI));
+				response.agregarRegistro(delivery);
+			}
+		}
+		return response;
+	}
+
+	/**
 	 * Metodo que permite configurar los filtros de busqueda para
 	 * obtener los DOMICILIOS VALORES
 	 */
@@ -196,6 +263,31 @@ public class DomiciliosService {
 			sql.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
 			sql.append("CI.ID_CIUDAD=?");
 			parametros.add(idCiudad);
+		}
+	}
+
+	/**
+	 * Metodo que permite configurar los filtros de busqueda para
+	 * obtener los DELIVERIES
+	 */
+	private void setFiltrosBusquedaDelivery(
+			StringBuilder sql,
+			ArrayList<Object> parametros,
+			FiltroBusquedaDTO filtro) {
+
+		// filtro por el estado del VALOR
+		Boolean estado = filtro.getEstado();
+		if (estado != null) {
+			sql.append("WHERE D.ID_ESTADO=?");
+			parametros.add(estado.booleanValue() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name());
+		}
+
+		// filtro por el nombre
+		String nombre = filtro.getNombre();
+		if (!Util.isNull(nombre)) {
+			sql.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
+			sql.append("UPPER(CONCAT(P.PRIMER_NOMBRE,' ',P.SEGUNDO_NOMBRE,' ',P.PRIMER_APELLIDO,' ',P.SEGUNDO_APELLIDO)) LIKE UPPER(?)");
+			parametros.add("%" + nombre + "%");
 		}
 	}
 

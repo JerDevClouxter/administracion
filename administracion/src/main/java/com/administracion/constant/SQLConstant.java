@@ -273,4 +273,18 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 
 	/** Count para la tabla DOMICILIOS_VALORES filtro localidad */
 	public static final String COUNT_DOMICILIOS_VALORES_LOCALIDAD = "SELECT COUNT(*)FROM DOMICILIOS_VALORES WHERE ID_LOCALIDAD=? AND UPPER(ZONA)=UPPER(?)";
+
+	/** SELECT para obtener los DELIVERIES */
+	public static final String SQL_GET_DELIVERIES =
+		"SELECT "
+			+ "D.ID_DELIVERY AS A,"
+			+ "CONCAT(P.PRIMER_NOMBRE,' ',P.SEGUNDO_NOMBRE,' ',P.PRIMER_APELLIDO,' ',P.SEGUNDO_APELLIDO)AS B,"
+			+ "P.CORREO_ELECTRONICO AS C,"
+			+ "P.TELEFONO AS DE,"
+			+ "INITCAP(D.ID_ESTADO)AS E "
+		+ "FROM DELIVERIES D "
+		+ "JOIN PERSONAS P ON(P.ID_PERSONA=D.ID_DELIVERY)";
+
+	/** ORDER BY para obtener los deliveries */
+	public static final String ORDER_DELIVERIES = " ORDER BY 2";
 }
