@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.administracion.dto.domicilios.DeliveryDTO;
 import com.administracion.dto.domicilios.DomicilioValorDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.service.DomiciliosService;
@@ -128,6 +129,33 @@ public class DomiciliosResource {
 			return Util.getResponseSuccessful(this.service.getDeliveries(filtro));
 		} catch (Exception e) {
 			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".getDeliveries ", e.getMessage());
+		}
+	}
+
+	/**
+	 * Servicio que permite crear un DELIVERY en el sistema
+	 * @param delivery, DTO que contiene los datos del DELIVERY a crear
+	 */
+	@PostMapping(path = "/crearDelivery",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Crear delivery", notes = "Operación para la creación del delivery")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> crearDelivery(@RequestBody DeliveryDTO delivery) {
+		try {
+			// se procede a crear el delivery
+			this.service.crearDelivery(delivery);
+
+			// si llega a este punto es porque la creacion se ejecuto sin problemas
+			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
+		} catch (Exception e) {
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".crearDelivery ", e.getMessage());
 		}
 	}
 }

@@ -287,4 +287,28 @@ public static final String SELECT_EMPRESAS_BASE = "SELECT e.ID_EMPRESA,e.NIT_EMP
 
 	/** ORDER BY para obtener los deliveries */
 	public static final String ORDER_DELIVERIES = " ORDER BY 2";
+
+	/** Insert para la tabla persona asociado a un delivery */
+	public static final String INSERT_DELIVERY_PERSONA = "INSERT INTO PERSONAS(ID_TIPO_DOCUMENTO,NUMERO_DOCUMENTO,PRIMER_NOMBRE,SEGUNDO_NOMBRE,PRIMER_APELLIDO,SEGUNDO_APELLIDO,TELEFONO,CORREO_ELECTRONICO,FECHA_NACIMIENTO,CIUDAD_NACIMIENTO,GENERO)VALUES(?,?,?,?,?,?,?,?,?,?,?)RETURNING ID_PERSONA";
+
+	/** Insert para la tabla delivery */
+	public static final String INSERT_DELIVERY = "INSERT INTO DELIVERIES(ID_DELIVERY,ID_ESTADO)VALUES(?,?)";
+
+	/** Insert para la tabla delivery EQUIPO*/
+	public static final String INSERT_DELIVERY_EQUIPO = "INSERT INTO DELIVERIES_EQUIPOS(ID_DELIVERY,ID_FABRICANTE,MODELO,NUMERO_SIM,NUMERO_IMEI)VALUES(?,?,?,?,?)";
+
+	/** Insert para la tabla delivery VEHICULO*/
+	public static final String INSERT_DELIVER_VEHICULO = "INSERT INTO DELIVERIES_VEHICULOS(ID_DELIVERY,PLACA,ID_TIPO_VEHICULO,ID_FABRICANTE,CILINDRAJE)VALUES(?,?,?,?,?)";
+
+	/** Count para validar si existe una persona con el mismo nro docu */
+	public static final String COUNT_PERSONA_NRO_DOCUMENTO = "SELECT COUNT(*) FROM PERSONAS WHERE NUMERO_DOCUMENTO=?";
+
+	/** Count para validar el nro de la placa de un delivery */
+	public static final String COUNT_PLACA_DELIVERY = "SELECT COUNT(*) FROM DELIVERIES_VEHICULOS WHERE PLACA=?";
+
+	/** Count para validar el nro SIM */
+	public static final String COUNT_NRO_SIM = "SELECT COUNT(*) FROM DELIVERIES_EQUIPOS WHERE NUMERO_SIM=?";
+
+	/** Count para validar el nro IMEI */
+	public static final String COUNT_NRO_IMEI = "SELECT COUNT(*) FROM DELIVERIES_EQUIPOS WHERE NUMERO_IMEI=?";
 }

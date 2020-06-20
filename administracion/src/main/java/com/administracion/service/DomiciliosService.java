@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -18,6 +19,8 @@ import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.SQLConstant;
 import com.administracion.constant.SQLTransversal;
 import com.administracion.dto.domicilios.DeliveryDTO;
+import com.administracion.dto.domicilios.DeliveryEquipoDTO;
+import com.administracion.dto.domicilios.DeliveryVehiculoDTO;
 import com.administracion.dto.domicilios.DomicilioValorDTO;
 import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.dto.transversal.PaginadorDTO;
@@ -223,14 +226,75 @@ public class DomiciliosService {
 			for (Object[] valores : result) {
 				delivery = new DeliveryDTO();
 				delivery.setId(Long.valueOf(Util.getValue(valores, Numero.ZERO.valueI)));
-				delivery.setNombre(Util.getValue(valores, Numero.UNO.valueI));
+				delivery.setNombreCompleto(Util.getValue(valores, Numero.UNO.valueI));
 				delivery.setCorreo(Util.getValue(valores, Numero.DOS.valueI));
 				delivery.setTelefono(Util.getValue(valores, Numero.TRES.valueI));
-				delivery.setEstado(Util.getValue(valores, Numero.CUATRO.valueI));
+				delivery.setIdEstado(Util.getValue(valores, Numero.CUATRO.valueI));
 				response.agregarRegistro(delivery);
 			}
 		}
 		return response;
+	}
+
+	/**
+	 * Servicio que permite crear un DELIVERY en el sistema
+	 * @param delivery, DTO que contiene los datos del DELIVERY a crear
+	 */
+	@Transactional
+	public void crearDelivery(DeliveryDTO delivery) throws Exception {
+
+		// se verifica los datos de entrada para la creacion
+		isDatosValidosDelivery(delivery, false);
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+			// se realiza el insert para PESONAS
+			Long idPersona = utilJDBC.insertReturningID(connection, SQLConstant.INSERT_DELIVERY_PERSONA,
+					ValueSQL.get(delivery.getIdTipoDocumento(), Types.VARCHAR),
+					ValueSQL.get(delivery.getNroDocumento(), Types.VARCHAR),
+					ValueSQL.get(delivery.getPrimerNombre(), Types.VARCHAR),
+					ValueSQL.get(delivery.getSegundoNombre(), Types.VARCHAR),
+					ValueSQL.get(delivery.getPrimerApellido(), Types.VARCHAR),
+					ValueSQL.get(delivery.getSegundoApellido(), Types.VARCHAR),
+					ValueSQL.get(delivery.getTelefono(), Types.VARCHAR),
+					ValueSQL.get(delivery.getCorreo(), Types.VARCHAR),
+					ValueSQL.get(delivery.getFechaNacimiento(), Types.DATE),
+					ValueSQL.get(delivery.getCiudadNacimiento(), Types.BIGINT),
+					ValueSQL.get(delivery.getGenero(), Types.VARCHAR));
+			ValueSQL idDelivery = ValueSQL.get(idPersona, Types.BIGINT);
+
+			// se realiza el insert para la tabla DELIVERIES
+			utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVERY,
+				idDelivery,
+				ValueSQL.get(delivery.isEstado() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name(), Types.VARCHAR));
+
+			// se realiza el insert del equipo asignado
+			DeliveryEquipoDTO equipoAsignado = delivery.getEquipoAsignado();
+			if (equipoAsignado != null && !Util.isNull(equipoAsignado.getNroSim())) {
+				utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVERY_EQUIPO,
+					idDelivery,
+					ValueSQL.get(equipoAsignado.getIdFabricante(), Types.BIGINT),
+					ValueSQL.get(equipoAsignado.getModelo(), Types.VARCHAR),
+					ValueSQL.get(equipoAsignado.getNroSim(), Types.VARCHAR),
+					ValueSQL.get(equipoAsignado.getNroImei(), Types.VARCHAR));
+			}
+
+			// se realiza el insert para el vehiculo del delivery
+			DeliveryVehiculoDTO vehiculo = delivery.getVehiculo();
+			if (vehiculo != null && !Util.isNull(vehiculo.getPlaca())) {
+				utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVER_VEHICULO,
+					idDelivery,
+					ValueSQL.get(vehiculo.getPlaca(), Types.VARCHAR),
+					ValueSQL.get(vehiculo.getIdTipoVehiculo(), Types.BIGINT),
+					ValueSQL.get(vehiculo.getIdFabricante(), Types.BIGINT),
+					ValueSQL.get(vehiculo.getCilindraje(), Types.VARCHAR));
+			}
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
 	}
 
 	/**
@@ -328,6 +392,106 @@ public class DomiciliosService {
 		}
 		if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
 			throw new BusinessException(MessagesBussinesKey.KEY_LOCALIDAD_DOMICILIO_VALOR_YA_EXISTE.value);
+		}
+	}
+
+	/**
+	 * Verifica los datos de entrada para la creacion o edicion del delivery
+	 */
+	private void isDatosValidosDelivery(DeliveryDTO delivery, boolean isEdicion) throws Exception {
+
+		// los datos del DELIVERY son requerido
+		if (delivery == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se verifica la nulalidad de cada valor
+		Long idDelivery = delivery.getId();
+		String idTipoDocumento = delivery.getIdTipoDocumento();
+		String nroDocumento = delivery.getNroDocumento();
+		String primerNombre = delivery.getPrimerNombre();
+		String primerApellido = delivery.getPrimerApellido();
+		String correo = delivery.getCorreo();
+		String telefono = delivery.getTelefono();
+		Date fechaNacimiento = delivery.getFechaNacimiento();
+		Long ciudadNacimiento = delivery.getCiudadNacimiento();
+		String genero = delivery.getGenero();
+		if (Util.isNull(idTipoDocumento) ||
+			Util.isNull(nroDocumento) ||
+			Util.isNull(primerNombre) || 
+			Util.isNull(primerApellido) ||
+			Util.isNull(correo) ||
+			Util.isNull(telefono) ||
+			Util.isNull(genero) ||
+			fechaNacimiento == null ||
+			ciudadNacimiento == null ||
+			(isEdicion && idDelivery == null)) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// no puede existir otra persona con el mismo nro documento
+		Query qcount = this.em.createNativeQuery(isEdicion
+				? SQLConstant.COUNT_PERSONA_NRO_DOCUMENTO + " AND ID_PERSONA<>?"
+				: SQLConstant.COUNT_PERSONA_NRO_DOCUMENTO);
+		qcount.setParameter(Numero.UNO.valueI, nroDocumento);
+		if (isEdicion) {
+			qcount.setParameter(Numero.DOS.valueI, idDelivery);
+		}
+		if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
+			throw new BusinessException(MessagesBussinesKey.KEY_PERSONA_MISMO_NRO_DOCUMENTO.value);
+		}
+
+		// no puede existir una placa del vehiculo para otro delivery
+		if (delivery.getVehiculo() != null) {
+			String nroPlaca = delivery.getVehiculo().getPlaca();
+			if (!Util.isNull(nroPlaca)) {
+				qcount = this.em.createNativeQuery(isEdicion
+						? SQLConstant.COUNT_PLACA_DELIVERY + " AND ID_DELIVERY<>?"
+						: SQLConstant.COUNT_PLACA_DELIVERY);
+				qcount.setParameter(Numero.UNO.valueI, nroPlaca);
+				if (isEdicion) {
+					qcount.setParameter(Numero.DOS.valueI, idDelivery);
+				}
+				if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
+					throw new BusinessException(MessagesBussinesKey.KEY_DELIVERY_PLACA_YA_EXISTE.value);
+				}
+			}
+		}
+
+		// se verifica el nro sim o imei del equipo asignado al delivery
+		if (delivery.getEquipoAsignado() != null) {
+
+			// se obtiene los dos identificadores
+			String sim = delivery.getEquipoAsignado().getNroSim();
+			String imei = delivery.getEquipoAsignado().getNroImei();
+
+			// se valida el nro SIM que no exista para otra delivery
+			if (!Util.isNull(sim)) {
+				qcount = this.em.createNativeQuery(isEdicion
+						? SQLConstant.COUNT_NRO_SIM + " AND ID_DELIVERY<>?"
+						: SQLConstant.COUNT_NRO_SIM);
+				qcount.setParameter(Numero.UNO.valueI, sim);
+				if (isEdicion) {
+					qcount.setParameter(Numero.DOS.valueI, idDelivery);
+				}
+				if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
+					throw new BusinessException(MessagesBussinesKey.KEY_DELIVERY_SIM_YA_EXISTE.value);
+				}
+			}
+
+			// se valida el nro IMEI que no exista para otra delivery
+			if (!Util.isNull(imei)) {
+				qcount = this.em.createNativeQuery(isEdicion
+						? SQLConstant.COUNT_NRO_IMEI + " AND ID_DELIVERY<>?"
+						: SQLConstant.COUNT_NRO_IMEI);
+				qcount.setParameter(Numero.UNO.valueI, imei);
+				if (isEdicion) {
+					qcount.setParameter(Numero.DOS.valueI, idDelivery);
+				}
+				if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
+					throw new BusinessException(MessagesBussinesKey.KEY_DELIVERY_IMEI_YA_EXISTE.value);
+				}
+			}
 		}
 	}
 }
