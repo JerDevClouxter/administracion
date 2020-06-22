@@ -261,7 +261,7 @@ public class DomiciliosService {
 					ValueSQL.get(delivery.getTelefono(), Types.VARCHAR),
 					ValueSQL.get(delivery.getCorreo(), Types.VARCHAR),
 					ValueSQL.get(delivery.getFechaNacimiento(), Types.DATE),
-					ValueSQL.get(delivery.getCiudadNacimiento(), Types.BIGINT),
+					ValueSQL.get(delivery.getIdCiudadNacimiento(), Types.BIGINT),
 					ValueSQL.get(delivery.getGenero(), Types.VARCHAR));
 			ValueSQL idDelivery = ValueSQL.get(idPersona, Types.BIGINT);
 
@@ -272,7 +272,7 @@ public class DomiciliosService {
 
 			// se realiza el insert del equipo asignado
 			DeliveryEquipoDTO equipoAsignado = delivery.getEquipoAsignado();
-			if (equipoAsignado != null && !Util.isNull(equipoAsignado.getNroSim())) {
+			if (equipoAsignado != null) {
 				utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVERY_EQUIPO,
 					idDelivery,
 					ValueSQL.get(equipoAsignado.getIdFabricante(), Types.BIGINT),
@@ -283,7 +283,7 @@ public class DomiciliosService {
 
 			// se realiza el insert para el vehiculo del delivery
 			DeliveryVehiculoDTO vehiculo = delivery.getVehiculo();
-			if (vehiculo != null && !Util.isNull(vehiculo.getPlaca())) {
+			if (vehiculo != null) {
 				utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVER_VEHICULO,
 					idDelivery,
 					ValueSQL.get(vehiculo.getPlaca(), Types.VARCHAR),
@@ -295,6 +295,82 @@ public class DomiciliosService {
 			connection.rollback();
 			throw e;
 		}
+	}
+
+	/**
+	 * Servicio que permite obtener los detalles de un DELIVERY
+	 *
+	 * @param idDelivery, identificador del DELIVERY
+	 * @return, datos con todos los detalles del DELIVERY
+	 */
+	public DeliveryDTO getDetalleDelivery(Long idDelivery) throws Exception {
+
+		// DTO con los datos del response
+		DeliveryDTO detalle = null;
+
+		// debe existir el identificador del DELIVERY para la busqueda
+		if (idDelivery != null) {
+
+			// se procede a consultar los detalles de este delivery
+			Query q = this.em.createNativeQuery(SQLConstant.GET_DETALLE_DELIVERY);
+			q.setParameter(Numero.UNO.valueI, idDelivery);
+			List<Object[]> result = q.getResultList();
+
+			// se verifica si hay detalles asociados al ID
+			if (result != null && !result.isEmpty()) {
+
+				// se configura los datos del detalle del delivery
+				String id;
+				detalle = new DeliveryDTO();
+				Object[] data = (Object[]) result.get(Numero.ZERO.valueI);
+				detalle.setId(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				detalle.setIdTipoDocumento(Util.getValue(data, Numero.UNO.valueI));
+				detalle.setTipoDocumento(Util.getValue(data, Numero.DOS.valueI));
+				detalle.setNroDocumento(Util.getValue(data, Numero.TRES.valueI));
+				detalle.setPrimerNombre(Util.getValue(data, Numero.CUATRO.valueI));
+				detalle.setSegundoNombre(Util.getValue(data, Numero.CINCO.valueI));
+				detalle.setPrimerApellido(Util.getValue(data, Numero.SEIS.valueI));
+				detalle.setSegundoApellido(Util.getValue(data, Numero.SIETE.valueI));
+				detalle.setCorreo(Util.getValue(data, Numero.OCHO.valueI));
+				detalle.setTelefono(Util.getValue(data, Numero.NUEVE.valueI));
+				detalle.setFechaNacimiento((Date) data[Numero.DIEZ.valueI]);
+				detalle.setIdCiudadNacimiento(Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)));
+				detalle.setCiudadNacimiento(Util.getValue(data, Numero.DOCE.valueI));
+				detalle.setGenero(Util.getValue(data, Numero.TRECE.valueI));
+				detalle.setEstado(EstadoEnum.ACTIVO.name().equals(Util.getValue(data, Numero.CATORCE.valueI)));
+				id = Util.getValue(data, Numero.QUINCE.valueI);
+				detalle.setEquipoAsignado(new DeliveryEquipoDTO());
+				if (!Util.isNull(id)) {
+					detalle.getEquipoAsignado().setId(Long.valueOf(id));
+				}
+				id = Util.getValue(data, Numero.DIECISEIS.valueI);
+				if (!Util.isNull(id)) {
+					detalle.getEquipoAsignado().setIdFabricante(Long.valueOf(id));
+				}
+				detalle.getEquipoAsignado().setFabricante(Util.getValue(data, Numero.DIECISIETE.valueI));
+				detalle.getEquipoAsignado().setModelo(Util.getValue(data, Numero.DIECIOCHO.valueI));
+				detalle.getEquipoAsignado().setNroSim(Util.getValue(data, Numero.DIECINUEVE.valueI));
+				detalle.getEquipoAsignado().setNroImei(Util.getValue(data, Numero.VEINTE.valueI));
+				id = Util.getValue(data, Numero.VEINTEUNO.valueI);
+				detalle.setVehiculo(new DeliveryVehiculoDTO());
+				if (!Util.isNull(id)) {
+					detalle.getVehiculo().setId(Long.valueOf(id));
+				}
+				id = Util.getValue(data, Numero.VEINTEDOS.valueI);
+				if (!Util.isNull(id)) {
+					detalle.getVehiculo().setIdTipoVehiculo(Long.valueOf(id));
+				}
+				detalle.getVehiculo().setTipoVehiculo(Util.getValue(data, Numero.VEINTETRES.valueI));
+				detalle.getVehiculo().setPlaca(Util.getValue(data, Numero.VEINTECUATRO.valueI));
+				id = Util.getValue(data, Numero.VEINTECINCO.valueI);
+				if (!Util.isNull(id)) {
+					detalle.getVehiculo().setIdFabricante(Long.valueOf(id));
+				}
+				detalle.getVehiculo().setFabricante(Util.getValue(data, Numero.VEINTESEIS.valueI));
+				detalle.getVehiculo().setCilindraje(Util.getValue(data, Numero.VEINTESIETE.valueI));
+			}
+		}
+		return detalle;
 	}
 
 	/**
@@ -414,7 +490,7 @@ public class DomiciliosService {
 		String correo = delivery.getCorreo();
 		String telefono = delivery.getTelefono();
 		Date fechaNacimiento = delivery.getFechaNacimiento();
-		Long ciudadNacimiento = delivery.getCiudadNacimiento();
+		Long idCiudadNacimiento = delivery.getIdCiudadNacimiento();
 		String genero = delivery.getGenero();
 		if (Util.isNull(idTipoDocumento) ||
 			Util.isNull(nroDocumento) ||
@@ -424,7 +500,7 @@ public class DomiciliosService {
 			Util.isNull(telefono) ||
 			Util.isNull(genero) ||
 			fechaNacimiento == null ||
-			ciudadNacimiento == null ||
+			idCiudadNacimiento == null ||
 			(isEdicion && idDelivery == null)) {
 			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
 		}

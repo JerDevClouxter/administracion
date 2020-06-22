@@ -11,11 +11,20 @@ import lombok.Data;
 public class DeliveryVehiculoDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	/** Identificador del vehiculo **/
+	private Long id;
+
 	/** Identificador del fabricante **/
 	private Long idFabricante;
 
+	/** Nombre del fabricante **/
+	private String fabricante;
+
 	/** Identificador del tipo de vehiculo **/
 	private Long idTipoVehiculo;
+
+	/** Nombre del tipo de vehiculo **/
+	private String tipoVehiculo;
 
 	/** Identificador del vehiculo **/
 	private String placa;

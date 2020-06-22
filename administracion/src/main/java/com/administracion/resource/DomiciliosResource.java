@@ -3,9 +3,11 @@ package com.administracion.resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.administracion.dto.domicilios.DeliveryDTO;
@@ -156,6 +158,29 @@ public class DomiciliosResource {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
 			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".crearDelivery ", e.getMessage());
+		}
+	}
+
+	/**
+	 * Servicio que permite obtener los detalles de un DELIVERY
+	 *
+	 * @param idDelivery, identificador del DELIVERY
+	 * @return, datos con todos los detalles del DELIVERY
+	 */
+	@GetMapping(path = "/getDetalleDelivery",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Obtener detalle delivery", notes = "Permite obtener los detalles de un delivery")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> getDetalleDelivery(@RequestParam Long idDelivery) {
+		try {
+			return Util.getResponseSuccessful(this.service.getDetalleDelivery(idDelivery));
+		} catch (Exception e) {
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".getDetalleDelivery ", e.getMessage());
 		}
 	}
 }

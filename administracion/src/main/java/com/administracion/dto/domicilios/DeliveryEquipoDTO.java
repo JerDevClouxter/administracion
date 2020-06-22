@@ -11,8 +11,14 @@ import lombok.Data;
 public class DeliveryEquipoDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	/** Identificador del equipo **/
+	private Long id;
+
 	/** Identificador del fabricante **/
 	private Long idFabricante;
+
+	/** Nombre del fabricante **/
+	private String fabricante;
 
 	/** Modelo del equipo **/
 	private String modelo;

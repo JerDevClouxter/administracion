@@ -12,11 +12,14 @@ import lombok.Data;
 public class DeliveryDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	/** Identificador del valor **/
+	/** Identificador del delivery **/
 	private Long id;
 
 	/** Identificador del tipo de documento **/
 	private String idTipoDocumento;
+
+	/** Nombre del tipo de documento **/
+	private String tipoDocumento;
 
 	/** Numero de documento **/
 	private String nroDocumento;
@@ -46,7 +49,10 @@ public class DeliveryDTO implements Serializable {
 	private Date fechaNacimiento;
 
 	/** Ciudad de nacimiento del delivery **/
-	private Long ciudadNacimiento;
+	private Long idCiudadNacimiento;
+
+	/** Nombre de la ciudad de nacimiento del delivery **/
+	private String ciudadNacimiento;
 
 	/** Genero del delivery **/
 	private String genero;
@@ -62,4 +68,7 @@ public class DeliveryDTO implements Serializable {
 
 	/** Es el vehiculo del delivery **/
 	private DeliveryVehiculoDTO vehiculo;
+
+	/** Es el detalle de los datos de este delivery **/
+	private DeliveryDTO detalle;
 }
