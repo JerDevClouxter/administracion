@@ -1,6 +1,7 @@
 package com.administracion.service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.administracion.builder.Builder;
 import com.administracion.constant.MessagesBussinesKey;
 import com.administracion.constant.SQLConstant;
+import com.administracion.constant.SQLTransversal;
 import com.administracion.dto.configurar.ConfiguracionUsuarioDTO;
 import com.administracion.dto.configurar.EmpresasDTO;
 import com.administracion.dto.configurar.PersonasDTO;
@@ -30,6 +32,10 @@ import com.administracion.dto.configurar.RolesDTO;
 import com.administracion.dto.configurar.TiposDocumentosDTO;
 import com.administracion.dto.configurar.UsuariosDTO;
 import com.administracion.dto.configurar.UsuariosRolesEmpresasDTO;
+import com.administracion.dto.recursos.RecursoDTO;
+import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
+import com.administracion.dto.transversal.PaginadorDTO;
+import com.administracion.dto.transversal.PaginadorResponseDTO;
 import com.administracion.entity.Empresas;
 import com.administracion.entity.Personas;
 import com.administracion.entity.Roles;
@@ -192,54 +198,140 @@ public class ConfiguracionService {
 	 * @return ConfiguracionUsuarioDTO
 	 * @throws BusinessException
 	 */
-	public ConfiguracionUsuarioDTO consultarUsuarioTipDocNum(String tipoDocumento, String numeroDocumento)
+	public ConfiguracionUsuarioDTO consultarUsuarioTipDocNum1(String tipoDocumento, String numeroDocumento)
 			throws BusinessException {
 		ConfiguracionUsuarioDTO configUsuarioDTO = new ConfiguracionUsuarioDTO();
 
-			Long idUsuario = null;
-			Query q = em.createNativeQuery(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC)
-					.setParameter("tipoDocumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
-			List<Object[]> listaT = q.getResultList();
-			if (listaT != null && !listaT.isEmpty()) {
-				for (Object[] data : listaT) {
-					PersonasDTO personaDTO = new PersonasDTO();
-					idUsuario = Long.valueOf(Util.getValue(data, Numero.ZERO.valueI));
-					personaDTO.setIdPersona(idUsuario);
-					personaDTO.setIdTipoDocumento(Util.getValue(data, Numero.UNO.valueI));
-					personaDTO.setNumeroDocumento(Util.getValue(data, Numero.DOS.valueI));
-					personaDTO.setPrimerNombre(Util.getValue(data, Numero.TRES.valueI));
-					personaDTO.setSegundoNombre(Util.getValue(data, Numero.CUATRO.valueI));
-					personaDTO.setPrimerApellido(Util.getValue(data, Numero.CINCO.valueI));
-					personaDTO.setSegundoApellido(Util.getValue(data, Numero.SEIS.valueI));
-					personaDTO.setDireccion(Util.getValue(data, Numero.SIETE.valueI));
-					personaDTO.setTelefono(Util.getValue(data, Numero.OCHO.valueI));
-					personaDTO.setCelular(Util.getValue(data, Numero.NUEVE.valueI));
-					personaDTO.setCorreoElectronico(Util.getValue(data, Numero.DIEZ.valueI));
-					personaDTO.setEstrato(Util.getValue(data, Numero.ONCE.valueI) != null ? Long.valueOf(Util.getValue(data, Numero.ONCE.valueI)): null);
+		Long idUsuario = null;
+		Query q = em.createNativeQuery(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC)
+				.setParameter("tipoDocumento", tipoDocumento).setParameter("numeroDocumento", numeroDocumento);
+		List<Object[]> listaT = q.getResultList();
+		if (listaT != null && !listaT.isEmpty()) {
+			for (Object[] data : listaT) {
+				PersonasDTO personaDTO = new PersonasDTO();
+				idUsuario = Long.valueOf(Util.getValue(data, Numero.ZERO.valueI));
+				personaDTO.setIdPersona(idUsuario);
+				personaDTO.setIdTipoDocumento(Util.getValue(data, Numero.UNO.valueI));
+				personaDTO.setNumeroDocumento(Util.getValue(data, Numero.DOS.valueI));
+				personaDTO.setPrimerNombre(Util.getValue(data, Numero.TRES.valueI));
+				personaDTO.setSegundoNombre(Util.getValue(data, Numero.CUATRO.valueI));
+				personaDTO.setPrimerApellido(Util.getValue(data, Numero.CINCO.valueI));
+				personaDTO.setSegundoApellido(Util.getValue(data, Numero.SEIS.valueI));
+				personaDTO.setDireccion(Util.getValue(data, Numero.SIETE.valueI));
+				personaDTO.setTelefono(Util.getValue(data, Numero.OCHO.valueI));
+				personaDTO.setCelular(Util.getValue(data, Numero.NUEVE.valueI));
+				personaDTO.setCorreoElectronico(Util.getValue(data, Numero.DIEZ.valueI));
+				personaDTO.setEstrato(Util.getValue(data, Numero.ONCE.valueI) != null
+						? Long.valueOf(Util.getValue(data, Numero.ONCE.valueI))
+						: null);
 
-					UsuariosDTO usuarioDTO = new UsuariosDTO();
-					usuarioDTO.setIdUsuario(idUsuario);
-					usuarioDTO.setNombreUsuario(Util.getValue(data, Numero.DOCE.valueI));
-					usuarioDTO.setClave(Util.getValue(data, Numero.TRECE.valueI));
-					usuarioDTO.setIdEstado(Util.getValue(data, Numero.CATORCE.valueI));
+				UsuariosDTO usuarioDTO = new UsuariosDTO();
+				usuarioDTO.setIdUsuario(idUsuario);
+				usuarioDTO.setNombreUsuario(Util.getValue(data, Numero.DOCE.valueI));
+				usuarioDTO.setClave(Util.getValue(data, Numero.TRECE.valueI));
+				usuarioDTO.setIdEstado(Util.getValue(data, Numero.CATORCE.valueI));
 
-					configUsuarioDTO.setPersonasDTO(personaDTO);
-					configUsuarioDTO.setUsuariosDTO(usuarioDTO);
-				}
-				List<EmpresasDTO> empresasRolesUsuario = consultarEmpresasRoles(idUsuario);
-				// Se consultan los roles empresa usuario asignados al usuario encontrado en la
-				// busqueda
-				if (empresasRolesUsuario != null && !empresasRolesUsuario.isEmpty()) {
-					configUsuarioDTO.setListEmpresasDTO(empresasRolesUsuario);
-				} else {
-					throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
-				}
-
+				configUsuarioDTO.setPersonasDTO(personaDTO);
+				configUsuarioDTO.setUsuariosDTO(usuarioDTO);
+			}
+			List<EmpresasDTO> empresasRolesUsuario = consultarEmpresasRoles(idUsuario);
+			// Se consultan los roles empresa usuario asignados al usuario encontrado en la
+			// busqueda
+			if (empresasRolesUsuario != null && !empresasRolesUsuario.isEmpty()) {
+				configUsuarioDTO.setListEmpresasDTO(empresasRolesUsuario);
 			} else {
 				throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
 			}
 
+		} else {
+			throw new BusinessException(MessagesBussinesKey.KEY_SIN_RELACION_USUARIO_TIP_NUM_DOC.value);
+		}
+
 		return configUsuarioDTO;
+	}
+
+	public PaginadorResponseDTO consultarUsuarioTipDocNum(FiltroBusquedaDTO filtro) throws Exception {
+
+		
+		// se utiliza para encapsular la respuesta de esta peticion
+		PaginadorResponseDTO response = new PaginadorResponseDTO();
+
+		// se obtiene el from de la consulta
+		// StringBuilder sql1 = new StringBuilder(SQLConstant.SQL_GET_RECURSOS);
+		StringBuilder sql = new StringBuilder(SQLConstant.SELECT_CONSULTAR_USUARIO_TIP_NUM_DOC);
+
+		// contiene los valores de los parametros del los filtros
+		ArrayList<Object> parametros = new ArrayList<>();
+
+		// se configura los filtros de busqueda ingresados
+		setFiltrosBusquedaUsuarios(sql, parametros, filtro);
+
+		// se ordena la consulta
+		sql.append(SQLConstant.ORDER_USUARIOS);
+
+		// se utiliza para obtener los datos del paginador
+		PaginadorDTO paginador = filtro.getPaginador();
+
+		// se valida si se debe contar el total de los registros
+		response.setCantidadTotal(paginador.getCantidadTotal());
+		if (response.getCantidadTotal() == null) {
+
+			// se configura el query con los valores de los filtros
+			Query qcount = this.em.createNativeQuery(SQLTransversal.getSQLCountTbl(sql.toString()));
+			Util.setParameters(qcount, parametros);
+
+			// se configura la cantidad total de acuerdo al filtro de busqueda
+			response.setCantidadTotal(((BigInteger) qcount.getSingleResult()).longValue());
+		}
+
+		// solo se consultan los registros solo si existen de acuerdo al filtro
+		if (response.getCantidadTotal() != null && !response.getCantidadTotal().equals(Numero.ZERO.valueL)) {
+
+			// se configura la paginacion de la consulta
+			SQLTransversal.getSQLPaginator(paginador.getSkip(), paginador.getRowsPage(), sql);
+
+			// se configura el query con los valores de los filtros y se obtiene los datos
+			Query query = this.em.createNativeQuery(sql.toString());
+			Util.setParameters(query, parametros);
+			List<Object[]> result = query.getResultList();
+			for (Object[] data : result) {
+				ConfiguracionUsuarioDTO configUsuarioDTO = new ConfiguracionUsuarioDTO();
+				PersonasDTO personaDTO = new PersonasDTO();
+				personaDTO.setIdPersona(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				personaDTO.setIdTipoDocumento(Util.getValue(data, Numero.UNO.valueI));
+				personaDTO.setNumeroDocumento(Util.getValue(data, Numero.DOS.valueI));
+				personaDTO.setPrimerNombre(Util.getValue(data, Numero.TRES.valueI));
+				personaDTO.setSegundoNombre(Util.getValue(data, Numero.CUATRO.valueI));
+				personaDTO.setPrimerApellido(Util.getValue(data, Numero.CINCO.valueI));
+				personaDTO.setSegundoApellido(Util.getValue(data, Numero.SEIS.valueI));
+				personaDTO.setDireccion(Util.getValue(data, Numero.SIETE.valueI));
+				personaDTO.setTelefono(Util.getValue(data, Numero.OCHO.valueI));
+				personaDTO.setCelular(Util.getValue(data, Numero.NUEVE.valueI));
+				personaDTO.setCorreoElectronico(Util.getValue(data, Numero.DIEZ.valueI));
+				personaDTO.setEstrato(Util.getValue(data, Numero.ONCE.valueI) != null
+						? Long.valueOf(Util.getValue(data, Numero.ONCE.valueI))
+						: null);
+
+				UsuariosDTO usuarioDTO = new UsuariosDTO();
+				usuarioDTO.setIdUsuario(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				usuarioDTO.setNombreUsuario(Util.getValue(data, Numero.DOCE.valueI));
+				usuarioDTO.setClave(Util.getValue(data, Numero.TRECE.valueI));
+				usuarioDTO.setIdEstado(Util.getValue(data, Numero.CATORCE.valueI));
+
+				configUsuarioDTO.setPersonasDTO(personaDTO);
+				configUsuarioDTO.setUsuariosDTO(usuarioDTO);
+				List<EmpresasDTO> empresasRolesUsuario = consultarEmpresasRoles(Long.valueOf(Util.getValue(data, Numero.ZERO.valueI)));
+				// Se consultan los roles empresa usuario asignados al usuario encontrado en la
+				// busqueda
+				if (empresasRolesUsuario != null && !empresasRolesUsuario.isEmpty()) {
+					configUsuarioDTO.setListEmpresasDTO(empresasRolesUsuario);
+				} 
+				response.agregarRegistro(configUsuarioDTO);
+			}
+			
+		}
+		
+		return response;
 	}
 
 	/**
@@ -312,7 +404,8 @@ public class ConfiguracionService {
 	 * @throws BusinessException
 	 */
 	@Transactional
-	public ConfiguracionUsuarioDTO crearEditarUsuario(ConfiguracionUsuarioDTO configuracionUsuarioDTO) throws BusinessException {
+	public ConfiguracionUsuarioDTO crearEditarUsuario(ConfiguracionUsuarioDTO configuracionUsuarioDTO)
+			throws BusinessException {
 		try {
 			Builder<UsuariosDTO, Usuarios> builderUsuario = new Builder<>(Usuarios.class);
 			Builder<PersonasDTO, Personas> builderPersona = new Builder<>(Personas.class);
@@ -448,7 +541,7 @@ public class ConfiguracionService {
 				empresaRoll.setRazonSocial(Util.getValue(data, Numero.DOS.valueI));
 				listUsuEmpresasDTO.add(empresaRoll);
 			}
-			
+
 			Collection<List<EmpresasDTO>> agruparRolesEmpr = listUsuEmpresasDTO.stream()
 					.collect(Collectors.groupingBy(EmpresasDTO::getIdEmpresa)).values();
 			for (List<EmpresasDTO> listUsuaEmp : agruparRolesEmpr) {
@@ -465,4 +558,28 @@ public class ConfiguracionService {
 		}
 		return listEmpresaRolFinal;
 	}
+
+	/**
+	 * Metodo que permite configurar los filtros de busqueda para obtener los
+	 * usuarios existentes en el sistema
+	 */
+	private void setFiltrosBusquedaUsuarios(StringBuilder sql, ArrayList<Object> parametros, FiltroBusquedaDTO filtro) {
+
+		// filtro por tipo doc usuario
+		String tipoDoc = filtro.getTipoDocumento();
+		if (!Util.isNull(tipoDoc)) {
+			sql.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
+			sql.append("UPPER(P.ID_TIPO_DOCUMENTO)=UPPER(?)");
+			parametros.add(tipoDoc);
+		}
+
+		// filtro por numero doc usuario
+		String numeroDoc = filtro.getNumeroDocumento();
+		if (!Util.isNull(numeroDoc)) {
+			sql.append(parametros.size() > Numero.ZERO.valueI.intValue() ? " AND " : " WHERE ");
+			sql.append("UPPER(P.NUMERO_DOCUMENTO)=UPPER(?)");
+			parametros.add(numeroDoc);
+		}
+	}
+
 }

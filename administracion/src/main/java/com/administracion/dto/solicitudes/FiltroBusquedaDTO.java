@@ -38,4 +38,12 @@ public class FiltroBusquedaDTO implements Serializable {
 
 	/** filtro por identificador de la ciudad **/
 	private Long idCiudad;
+	
+	/** filtro por tipo de documento **/
+	private String tipoDocumento;
+	
+	/** filtro por numero de documentp **/
+	private String numeroDocumento;
+	
+	
 }

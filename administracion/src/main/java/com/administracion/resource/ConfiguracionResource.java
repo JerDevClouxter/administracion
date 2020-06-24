@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.administracion.dto.configurar.ConfiguracionUsuarioDTO;
 import com.administracion.dto.configurar.UsuariosDTO;
 import com.administracion.dto.configurar.UsuariosRolesEmpresasDTO;
+import com.administracion.dto.solicitudes.FiltroBusquedaDTO;
 import com.administracion.service.ConfiguracionService;
 import com.administracion.util.BusinessException;
 import com.administracion.util.Util;
@@ -34,21 +35,20 @@ public class ConfiguracionResource {
 	/**
 	 * metodo encargado de buscar un usuario por tipo o numero de documento
 	 * 
-	 * @return ConfiguracionUsuarioDTO información de un usuario registrado en el
+	 * @return ConfiguracionUsuarioDTO información de usuarios registrado en el
 	 *         sistema
 	 * @throws BusinessException
 	 */
-	@GetMapping(path = "/consultarUsuarioTipDocNum", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	@ApiOperation(value = "Consultar usuario tipo documento", notes = "Operación para consular  en el sistema un usuario existente, por medio de el tipo y numero de documento")
+	@PostMapping(path = "/consultarUsuarioTipDocNum", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Consultar usuario tipo documento", notes = "Operación para consular en el sistema los usuarios existentes")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
 			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
 			@ApiResponse(code = 404, message = "Recurso no encontrado"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
-	public ResponseEntity<Object> consultarUsuarioTipDocNum(@RequestParam("tipoDocumento") String tipoDocumento,
-			@RequestParam("numeroDocumento") String numeroDocumento) {
+	public ResponseEntity<Object> consultarUsuarioTipDocNum(@RequestBody FiltroBusquedaDTO filtro) {
 		try {
 			return Util.getResponseSuccessful(
-					this.configuracionService.consultarUsuarioTipDocNum(tipoDocumento, numeroDocumento));
+					this.configuracionService.consultarUsuarioTipDocNum(filtro));
 		} catch (BusinessException e) {
 			return Util.getResponseBadRequest(e.getMessage());
 		} catch (Exception e) {
