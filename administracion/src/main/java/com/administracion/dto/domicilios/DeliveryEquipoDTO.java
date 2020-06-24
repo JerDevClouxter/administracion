@@ -28,4 +28,7 @@ public class DeliveryEquipoDTO implements Serializable {
 
 	/** Nro iemi del equipo **/
 	private String nroImei;
+
+	/** Indica si los datos del equipo fueron modificados **/
+	private boolean datosEquipoModificado;
 }

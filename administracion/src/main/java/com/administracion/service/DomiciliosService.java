@@ -243,8 +243,19 @@ public class DomiciliosService {
 	@Transactional
 	public void crearDelivery(DeliveryDTO delivery) throws Exception {
 
-		// se verifica los datos de entrada para la creacion
-		isDatosValidosDelivery(delivery, false);
+		// los datos del DELIVERY son requerido
+		if (delivery == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se verifica si los datos personales son validos
+		isDatosPersonalesDeliveryValidos(delivery, false);
+
+		// se verifica si los datos del vehiculo son validos
+		isDatosVehiculoDeliveryValidos(delivery, false);
+
+		// se verifica si los datos del equipo son validos
+		isDatosEquipoDeliveryValidos(delivery, false);
 
 		// se obtiene la conection para trabajar con JDBC
 		UtilJDBC utilJDBC = UtilJDBC.getInstance();
@@ -284,7 +295,7 @@ public class DomiciliosService {
 			// se realiza el insert para el vehiculo del delivery
 			DeliveryVehiculoDTO vehiculo = delivery.getVehiculo();
 			if (vehiculo != null) {
-				utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVER_VEHICULO,
+				utilJDBC.insertUpdate(connection, SQLConstant.INSERT_DELIVERY_VEHICULO,
 					idDelivery,
 					ValueSQL.get(vehiculo.getPlaca(), Types.VARCHAR),
 					ValueSQL.get(vehiculo.getIdTipoVehiculo(), Types.BIGINT),
@@ -371,6 +382,89 @@ public class DomiciliosService {
 			}
 		}
 		return detalle;
+	}
+
+	/**
+	 * Servicio que permite editar un DELIVERY en el sistema
+	 * @param delivery, DTO que contiene los datos del DELIVERY a editar
+	 */
+	public void editarDelivery(DeliveryDTO delivery) throws Exception {
+
+		// los datos del DELIVERY son requerido
+		if (delivery == null) {
+			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
+		}
+
+		// se valida si los datos personales son validos si son modificados
+		if (delivery.isDatosPersonalesModificado()) {
+			isDatosPersonalesDeliveryValidos(delivery, true);
+		}
+
+		// se valida si los datos del vehiculo son validos si son modificados
+		DeliveryVehiculoDTO vehiculo = delivery.getVehiculo();
+		if (vehiculo != null && vehiculo.isDatosVehiculoModificado()) {
+			isDatosVehiculoDeliveryValidos(delivery, true);
+		}
+
+		// se valida si los datos del equipo son validos si son modificados
+		DeliveryEquipoDTO equipoAsignado = delivery.getEquipoAsignado();
+		if (equipoAsignado != null && equipoAsignado.isDatosEquipoModificado()) {
+			isDatosEquipoDeliveryValidos(delivery, true);
+		}
+
+		// se obtiene la conection para trabajar con JDBC
+		UtilJDBC utilJDBC = UtilJDBC.getInstance();
+		Connection connection = utilJDBC.getConnection(this.em);
+		try {
+
+			// se actualiza los datos personales si fueron modificados
+			if (delivery.isDatosPersonalesModificado()) {
+				ValueSQL idDelivery = ValueSQL.get(delivery.getId(), Types.BIGINT);
+
+				// update para los datos personales
+				utilJDBC.insertUpdate(connection, SQLConstant.UPDATE_DELIVERY_PERSONA,
+						ValueSQL.get(delivery.getIdTipoDocumento(), Types.VARCHAR),
+						ValueSQL.get(delivery.getNroDocumento(), Types.VARCHAR),
+						ValueSQL.get(delivery.getPrimerNombre(), Types.VARCHAR),
+						ValueSQL.get(delivery.getSegundoNombre(), Types.VARCHAR),
+						ValueSQL.get(delivery.getPrimerApellido(), Types.VARCHAR),
+						ValueSQL.get(delivery.getSegundoApellido(), Types.VARCHAR),
+						ValueSQL.get(delivery.getTelefono(), Types.VARCHAR),
+						ValueSQL.get(delivery.getCorreo(), Types.VARCHAR),
+						ValueSQL.get(delivery.getFechaNacimiento(), Types.DATE),
+						ValueSQL.get(delivery.getIdCiudadNacimiento(), Types.BIGINT),
+						ValueSQL.get(delivery.getGenero(), Types.VARCHAR),
+						idDelivery);
+
+				// update para los datos del delivery
+				utilJDBC.insertUpdate(connection, SQLConstant.UPDATE_DELIVERY,
+						ValueSQL.get(delivery.isEstado() ? EstadoEnum.ACTIVO.name() : EstadoEnum.INACTIVO.name(), Types.VARCHAR),
+						idDelivery);
+			}
+
+			// se actualiza los datos del equipo si fueron modificados
+			if (equipoAsignado != null && equipoAsignado.isDatosEquipoModificado()) {
+				utilJDBC.insertUpdate(connection, SQLConstant.UPDATE_DELIVERY_EQUIPO,
+						ValueSQL.get(equipoAsignado.getIdFabricante(), Types.BIGINT),
+						ValueSQL.get(equipoAsignado.getModelo(), Types.VARCHAR),
+						ValueSQL.get(equipoAsignado.getNroSim(), Types.VARCHAR),
+						ValueSQL.get(equipoAsignado.getNroImei(), Types.VARCHAR),
+						ValueSQL.get(equipoAsignado.getId(), Types.BIGINT));
+			}
+
+			// se actualiza los datos del vehiculo si fueron modificados
+			if (vehiculo != null && vehiculo.isDatosVehiculoModificado()) {
+				utilJDBC.insertUpdate(connection, SQLConstant.UPDATE_DELIVERY_VEHICULO,
+						ValueSQL.get(vehiculo.getPlaca(), Types.VARCHAR),
+						ValueSQL.get(vehiculo.getIdTipoVehiculo(), Types.BIGINT),
+						ValueSQL.get(vehiculo.getIdFabricante(), Types.BIGINT),
+						ValueSQL.get(vehiculo.getCilindraje(), Types.VARCHAR),
+						ValueSQL.get(vehiculo.getId(), Types.BIGINT));
+			}
+		} catch (Exception e) {
+			connection.rollback();
+			throw e;
+		}
 	}
 
 	/**
@@ -472,14 +566,9 @@ public class DomiciliosService {
 	}
 
 	/**
-	 * Verifica los datos de entrada para la creacion o edicion del delivery
+	 * Verifica si los datos personales del delivery son validos
 	 */
-	private void isDatosValidosDelivery(DeliveryDTO delivery, boolean isEdicion) throws Exception {
-
-		// los datos del DELIVERY son requerido
-		if (delivery == null) {
-			throw new BusinessException(MessagesBussinesKey.KEY_SOLICITUD_DATA_REQUERIDO.value);
-		}
+	private void isDatosPersonalesDeliveryValidos(DeliveryDTO delivery, boolean isEdicion) throws Exception {
 
 		// se verifica la nulalidad de cada valor
 		Long idDelivery = delivery.getId();
@@ -516,26 +605,39 @@ public class DomiciliosService {
 		if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
 			throw new BusinessException(MessagesBussinesKey.KEY_PERSONA_MISMO_NRO_DOCUMENTO.value);
 		}
+	}
+
+	/**
+	 * Verifica si los datos del vehiculo del delivery son validos
+	 */
+	private void isDatosVehiculoDeliveryValidos(DeliveryDTO delivery, boolean isEdicion) throws Exception {
 
 		// no puede existir una placa del vehiculo para otro delivery
 		if (delivery.getVehiculo() != null) {
 			String nroPlaca = delivery.getVehiculo().getPlaca();
 			if (!Util.isNull(nroPlaca)) {
-				qcount = this.em.createNativeQuery(isEdicion
+				Query qcount = this.em.createNativeQuery(isEdicion
 						? SQLConstant.COUNT_PLACA_DELIVERY + " AND ID_DELIVERY<>?"
 						: SQLConstant.COUNT_PLACA_DELIVERY);
 				qcount.setParameter(Numero.UNO.valueI, nroPlaca);
 				if (isEdicion) {
-					qcount.setParameter(Numero.DOS.valueI, idDelivery);
+					qcount.setParameter(Numero.DOS.valueI, delivery.getId());
 				}
 				if (((BigInteger) qcount.getSingleResult()).intValue() > Numero.ZERO.valueI) {
 					throw new BusinessException(MessagesBussinesKey.KEY_DELIVERY_PLACA_YA_EXISTE.value);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Verifica si los datos del equipo del delivery son validos
+	 */
+	private void isDatosEquipoDeliveryValidos(DeliveryDTO delivery, boolean isEdicion) throws Exception {
 
 		// se verifica el nro sim o imei del equipo asignado al delivery
 		if (delivery.getEquipoAsignado() != null) {
+			Long idDelivery = delivery.getId();
 
 			// se obtiene los dos identificadores
 			String sim = delivery.getEquipoAsignado().getNroSim();
@@ -543,7 +645,7 @@ public class DomiciliosService {
 
 			// se valida el nro SIM que no exista para otra delivery
 			if (!Util.isNull(sim)) {
-				qcount = this.em.createNativeQuery(isEdicion
+				Query qcount = this.em.createNativeQuery(isEdicion
 						? SQLConstant.COUNT_NRO_SIM + " AND ID_DELIVERY<>?"
 						: SQLConstant.COUNT_NRO_SIM);
 				qcount.setParameter(Numero.UNO.valueI, sim);
@@ -555,9 +657,9 @@ public class DomiciliosService {
 				}
 			}
 
-			// se valida el nro IMEI que no exista para otra delivery
+			// se valida el nro IMEI que no exista para otro delivery
 			if (!Util.isNull(imei)) {
-				qcount = this.em.createNativeQuery(isEdicion
+				Query qcount = this.em.createNativeQuery(isEdicion
 						? SQLConstant.COUNT_NRO_IMEI + " AND ID_DELIVERY<>?"
 						: SQLConstant.COUNT_NRO_IMEI);
 				qcount.setParameter(Numero.UNO.valueI, imei);
