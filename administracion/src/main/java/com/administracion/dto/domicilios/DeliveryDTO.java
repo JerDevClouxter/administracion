@@ -71,4 +71,7 @@ public class DeliveryDTO implements Serializable {
 
 	/** Es el detalle de los datos de este delivery **/
 	private DeliveryDTO detalle;
+
+	/** Indica si los datos personales fueron modificados **/
+	private boolean datosPersonalesModificado;
 }

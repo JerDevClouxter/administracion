@@ -183,4 +183,31 @@ public class DomiciliosResource {
 			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".getDetalleDelivery ", e.getMessage());
 		}
 	}
+
+	/**
+	 * Servicio que permite editar un DELIVERY en el sistema
+	 * @param delivery, DTO que contiene los datos del DELIVERY a editar
+	 */
+	@PostMapping(path = "/editarDelivery",
+			consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ApiOperation(value = "Editar delivery", notes = "Operación para la edición del delivery")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Proceso ejecutado satisfactoriamente"),
+			@ApiResponse(code = 400, message = "Se presentó una exception de negocio"),
+			@ApiResponse(code = 404, message = "Recurso no encontrado"),
+			@ApiResponse(code = 500, message = "Internal Server Error")})
+	public ResponseEntity<Object> editarDelivery(@RequestBody DeliveryDTO delivery) {
+		try {
+			// se procede a editar el delivery
+			this.service.editarDelivery(delivery);
+
+			// si llega a este punto es porque la edicion se ejecuto sin problemas
+			return Util.getResponseOk();
+		} catch (BusinessException e) {
+			return Util.getResponseBadRequest(e.getMessage());
+		} catch (Exception e) {
+			return Util.getResponseError(DomiciliosResource.class.getSimpleName() + ".editarDelivery ", e.getMessage());
+		}
+	}
 }

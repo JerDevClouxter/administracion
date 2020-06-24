@@ -31,4 +31,7 @@ public class DeliveryVehiculoDTO implements Serializable {
 
 	/** Cilindraje del vehiculo **/
 	private String cilindraje;
+
+	/** Indica si los datos del vehiculo fueron modificados **/
+	private boolean datosVehiculoModificado;
 }
